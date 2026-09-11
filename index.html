@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluffy Bird - Voice Controlled Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Game Viewport -->
+    <div class="game-viewport" id="viewport">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Top Live Audio Meter (Always accessible during play) -->
+        <div class="hud-mic-meter" id="hud-mic-meter" title="Mic Volume Meter & Trigger Threshold">
+            <span class="mic-icon-pulse" id="mic-icon">🎙️</span>
+            <div class="meter-track" id="meter-track">
+                <div class="meter-fill" id="meter-fill"></div>
+                <div class="meter-threshold-line" id="meter-threshold-line" style="left: 22%;"></div>
+            </div>
+            <span class="meter-label" id="meter-label">Ready</span>
+        </div>
+
+        <!-- In-Game HUD -->
+        <div class="game-hud" id="hud">
+            <div class="score-badge">
+                <span>⭐</span>
+                <span id="current-score-text">0</span>
+            </div>
+            <button class="btn-secondary" id="btn-hud-sound" title="Toggle Sound">🔊</button>
+        </div>
+
+        <!-- Menu / Start Screen Overlay -->
+        <div class="overlay-screen active" id="menu-screen">
+            <div class="title-group">
+                <h1 class="game-title">FLUFFY BIRD</h1>
+                <div class="game-subtitle">🎙️ Voice Controlled Flight</div>
+            </div>
+
+            <button class="btn-primary" id="btn-start-game">
+                <span>🎤</span>
+                <span>SAY "JUMP!" OR TAP</span>
+            </button>
+
+            <p style="font-size: 13px; color: #555; margin-top: 14px; max-width: 260px; line-height: 1.4;">
+                Shout, speak, or make sounds into your microphone to make the fluffy bird fly!
+            </p>
+        </div>
+
+        <!-- Game Over Screen Overlay -->
+        <div class="overlay-screen" id="gameover-screen">
+            <div class="gameover-card">
+                <h2 style="font-size: 28px; color: #ff5c8a; margin-bottom: 6px;">GAME OVER</h2>
+                <div class="medal-chip" id="medal-icon">🥚 Baby Chick</div>
+
+                <div class="score-row">
+                    <span>Score:</span>
+                    <span class="score-val" id="final-score">0</span>
+                </div>
+                <div class="score-row">
+                    <span>Best:</span>
+                    <div>
+                        <span class="score-val" id="final-best">0</span>
+                        <span class="badge-new" id="new-best-badge" style="display: none;">NEW!</span>
+                    </div>
+                </div>
+
+                <button class="btn-primary" id="btn-restart-game" style="width: 100%; justify-content: center; margin-top: 18px;">
+                    <span>🔄</span>
+                    <span>PLAY AGAIN</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Control & Customization Panel -->
+    <div class="sidebar-panel">
+        <!-- Voice Flight Mode Section -->
+        <div class="panel-section">
+            <div class="panel-title">
+                <span>🎮</span>
+                <span>Voice Flight Mode</span>
+            </div>
+            <div class="mode-toggle-group">
+                <button class="mode-btn active" id="mode-flap" data-mode="vocal_flap">
+                    ⚡ Vocal Flap
+                </button>
+                <button class="mode-btn" id="mode-float" data-mode="continuous_float">
+                    🌊 Voice Float
+                </button>
+            </div>
+            <div class="mode-desc" id="mode-description">
+                <strong>Vocal Flap (Spike):</strong> Say "Hop!", "Up!", "Ah!" or make sharp sounds to trigger upward wing flaps like classic Flappy Bird.
+            </div>
+        </div>
+
+        <!-- Microphone Tuning Section -->
+        <div class="panel-section">
+            <div class="panel-title">
+                <span>🎙️</span>
+                <span>Microphone Calibration</span>
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Trigger Threshold</span>
+                    <span id="threshold-val">22%</span>
+                </div>
+                <input type="range" class="range-slider" id="slider-threshold" min="0.05" max="0.75" step="0.01" value="0.22">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Jump Height (Flap Power)</span>
+                    <span id="jump-power-val">Low (5.0)</span>
+                </div>
+                <input type="range" class="range-slider" id="slider-jump-power" min="3.5" max="7.0" step="0.2" value="5.0">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Pillar Gap (Spaciousness)</span>
+                    <span id="pipe-gap-val">Wide (230px)</span>
+                </div>
+                <input type="range" class="range-slider" id="slider-pipe-gap" min="180" max="280" step="10" value="230">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Mic Sensitivity</span>
+                    <span id="sensitivity-val">1.0x</span>
+                </div>
+                <input type="range" class="range-slider" id="slider-sensitivity" min="0.5" max="2.5" step="0.1" value="1.0">
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <button class="btn-secondary" id="btn-calibrate" style="flex: 1;">
+                    🎯 Auto-Calibrate Noise
+                </button>
+                <button class="btn-secondary" id="btn-test-mic" style="flex: 1;">
+                    🎤 Enable Mic
+                </button>
+            </div>
+        </div>
+
+        <!-- Bird Character Skins -->
+        <div class="panel-section">
+            <div class="panel-title">
+                <span>🐥</span>
+                <span>Fluffy Bird Skins</span>
+            </div>
+            <div class="skin-grid" id="skin-grid">
+                <div class="skin-chip active" data-skin="sunny">
+                    <div class="skin-preview-dot" style="background: #FFD700;"></div>
+                    <span>Sunny Chick</span>
+                </div>
+                <div class="skin-chip" data-skin="cotton">
+                    <div class="skin-preview-dot" style="background: #FFB6C1;"></div>
+                    <span>Cotton Candy</span>
+                </div>
+                <div class="skin-chip" data-skin="sky">
+                    <div class="skin-preview-dot" style="background: #70D6FF;"></div>
+                    <span>Cloud Jay</span>
+                </div>
+                <div class="skin-chip" data-skin="phoenix">
+                    <div class="skin-preview-dot" style="background: #FF8C42;"></div>
+                    <span>Golden Ember</span>
+                </div>
+                <div class="skin-chip" data-skin="matcha">
+                    <div class="skin-preview-dot" style="background: #A8DADC;"></div>
+                    <span>Matcha Puff</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls & Tips -->
+        <div class="panel-section">
+            <div class="panel-title">
+                <span>💡</span>
+                <span>Controls & Tips</span>
+            </div>
+            <ul class="tips-list">
+                <li>Make quick vocal sounds ("Ha!", "Up!", "Flap!") to bounce through the cloud pillars.</li>
+                <li>Collect spinning <strong>⭐ Golden Stars</strong> for +3 bonus points.</li>
+                <li><strong>Auto-Calibrate</strong> if playing with background music or in noisy rooms.</li>
+                <li><strong>Fallback:</strong> Spacebar, Up Arrow, or Clicking the screen also flaps.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Auto Calibration Modal -->
+<div class="modal-backdrop" id="calib-modal">
+    <div class="modal-box">
+        <h3 style="color: #ff5c8a; font-size: 22px; margin-bottom: 8px;">Calibrating Room Noise...</h3>
+        <p style="font-size: 13px; color: #666;">Please stay relatively quiet for 2 seconds while we measure your ambient background noise.</p>
+        <div class="calib-progress-bar">
+            <div class="calib-progress-fill" id="calib-fill"></div>
+        </div>
+        <p style="font-size: 12px; color: #888;">Listening to room acoustics...</p>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="sfx.js"></script>
+<script src="audio-controller.js"></script>
+<script src="bird.js"></script>
+<script src="game-engine.js"></script>
+<script>
+    // Initialize Game
+    window.addEventListener('DOMContentLoaded', () => {
+        const engine = new GameEngine('game-canvas');
+        engine.start();
+
+        // UI Element References
+        const btnStart = document.getElementById('btn-start-game');
+        const btnRestart = document.getElementById('btn-restart-game');
+        const btnHudSound = document.getElementById('btn-hud-sound');
+        const btnCalibrate = document.getElementById('btn-calibrate');
+        const btnTestMic = document.getElementById('btn-test-mic');
+        
+        const modeFlap = document.getElementById('mode-flap');
+        const modeFloat = document.getElementById('mode-float');
+        const modeDesc = document.getElementById('mode-description');
+
+        const sliderThreshold = document.getElementById('slider-threshold');
+        const sliderSensitivity = document.getElementById('slider-sensitivity');
+        const thresholdVal = document.getElementById('threshold-val');
+        const sensitivityVal = document.getElementById('sensitivity-val');
+
+        const meterFill = document.getElementById('meter-fill');
+        const meterThresholdLine = document.getElementById('meter-threshold-line');
+        const meterLabel = document.getElementById('meter-label');
+        const micIcon = document.getElementById('mic-icon');
+
+        const calibModal = document.getElementById('calib-modal');
+        const calibFill = document.getElementById('calib-fill');
+
+        // Audio Level Live Meter Update
+        window.audioController.onLevelUpdate = (vol, threshold, isTriggered) => {
+            const pct = Math.min(100, Math.round(vol * 100));
+            meterFill.style.width = pct + '%';
+            
+            if (isTriggered) {
+                meterFill.classList.add('triggered');
+                micIcon.classList.add('active');
+            } else {
+                meterFill.classList.remove('triggered');
+                micIcon.classList.remove('active');
+            }
+
+            if (window.audioController.isListening) {
+                if (window.audioController.mode === 'continuous_float') {
+                    const intensityPct = Math.round(window.audioController.getCurrentIntensity() * 100);
+                    meterLabel.innerText = intensityPct > 10 ? `FLOAT ${intensityPct}%` : 'Hum...';
+                } else {
+                    meterLabel.innerText = isTriggered ? 'VOICE!' : (pct + '%');
+                }
+            }
+        };
+
+        window.audioController.onError = (err) => {
+            meterLabel.innerText = 'Mic Off';
+            alert("Microphone permission was denied or unavailable. You can still play with Spacebar or Click!");
+        };
+
+        // Start / Restart
+        btnStart.addEventListener('click', (e) => {
+            e.stopPropagation();
+            engine.startGame();
+        });
+
+        btnRestart.addEventListener('click', (e) => {
+            e.stopPropagation();
+            engine.startGame();
+        });
+
+        // Click / Touch on viewport (Supports tap flap and hold-to-float)
+        const viewport = document.getElementById('viewport');
+        viewport.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('#btn-hud-sound') || e.target.closest('.hud-mic-meter')) return;
+            if (window.audioController.mode === 'continuous_float') {
+                if (engine.state === 'MENU' || engine.state === 'GAMEOVER') {
+                    engine.startGame();
+                }
+                engine.isManualFloating = true;
+            } else {
+                engine.handleInputFlap();
+            }
+        });
+
+        window.addEventListener('pointerup', () => {
+            engine.isManualFloating = false;
+        });
+        window.addEventListener('pointercancel', () => {
+            engine.isManualFloating = false;
+        });
+
+        // Keyboard Controls (Supports tap flap and hold-to-float)
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                e.preventDefault();
+                if (window.audioController.mode === 'continuous_float') {
+                    if (engine.state === 'MENU' || engine.state === 'GAMEOVER') {
+                        engine.startGame();
+                    }
+                    engine.isManualFloating = true;
+                } else {
+                    engine.handleInputFlap();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                engine.isManualFloating = false;
+            }
+        });
+
+        // Sound Toggle
+        let isMuted = false;
+        btnHudSound.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isMuted = !isMuted;
+            if (window.sfx) window.sfx.enabled = !isMuted;
+            btnHudSound.innerText = isMuted ? '🔇' : '🔊';
+        });
+
+        // Mode Switching
+        modeFlap.addEventListener('click', () => {
+            modeFlap.classList.add('active');
+            modeFloat.classList.remove('active');
+            window.audioController.setMode('vocal_flap');
+            meterLabel.innerText = 'Vocal Flap';
+            modeDesc.innerHTML = `<strong>Vocal Flap (Spike):</strong> Say "Hop!", "Up!", "Ah!" or make sharp sounds to trigger upward wing flaps like classic Flappy Bird.`;
+        });
+
+        modeFloat.addEventListener('click', () => {
+            modeFloat.classList.add('active');
+            modeFlap.classList.remove('active');
+            window.audioController.setMode('continuous_float');
+            meterLabel.innerText = 'Hum to Float';
+            modeDesc.innerHTML = `<strong>Voice Float (Continuous):</strong> Hum, sing, or sustain your voice! Louder sounds float higher, softer hums hover low.`;
+        });
+
+        const sliderJumpPower = document.getElementById('slider-jump-power');
+        const jumpPowerVal = document.getElementById('jump-power-val');
+        const sliderPipeGap = document.getElementById('slider-pipe-gap');
+        const pipeGapVal = document.getElementById('pipe-gap-val');
+
+        // Slider Listeners
+        sliderJumpPower.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            engine.bird.setFlapPower(val);
+            let label = 'Low';
+            if (val < 4.4) label = 'Very Low';
+            else if (val <= 5.4) label = 'Low (Gentle)';
+            else if (val <= 6.2) label = 'Medium';
+            else label = 'High';
+            jumpPowerVal.innerText = `${label} (${val.toFixed(1)})`;
+        });
+
+        sliderPipeGap.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            engine.setPipeGap(val);
+            let label = 'Wide';
+            if (val < 200) label = 'Normal';
+            else if (val <= 240) label = 'Wide';
+            else label = 'Super Wide';
+            pipeGapVal.innerText = `${label} (${Math.round(val)}px)`;
+        });
+
+        sliderThreshold.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            window.audioController.setThreshold(val);
+            thresholdVal.innerText = Math.round(val * 100) + '%';
+            meterThresholdLine.style.left = Math.round(val * 100) + '%';
+        });
+
+        sliderSensitivity.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            window.audioController.setSensitivity(val);
+            sensitivityVal.innerText = val.toFixed(1) + 'x';
+        });
+
+        // Enable Mic Button
+        btnTestMic.addEventListener('click', async () => {
+            const ok = await window.audioController.initMicrophone();
+            if (ok) {
+                btnTestMic.innerText = '✅ Mic Connected';
+                btnTestMic.style.borderColor = '#4CAF50';
+                meterLabel.innerText = 'Listening';
+            }
+        });
+
+        // Auto-Calibration
+        btnCalibrate.addEventListener('click', async () => {
+            calibModal.classList.add('active');
+            calibFill.style.width = '0%';
+
+            const result = await window.audioController.autoCalibrate(2000, (prog) => {
+                calibFill.style.width = Math.round(prog * 100) + '%';
+            });
+
+            calibModal.classList.remove('active');
+
+            if (result) {
+                // Update sliders
+                sliderThreshold.value = result.threshold;
+                thresholdVal.innerText = Math.round(result.threshold * 100) + '%';
+                meterThresholdLine.style.left = Math.round(result.threshold * 100) + '%';
+                meterLabel.innerText = 'Calibrated!';
+                btnTestMic.innerText = '✅ Mic Connected';
+            }
+        });
+
+        // Skin Selector
+        const skinChips = document.querySelectorAll('.skin-chip');
+        skinChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                skinChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                const skinKey = chip.getAttribute('data-skin');
+                engine.bird.setSkin(skinKey);
+                if (window.sfx) window.sfx.playClick();
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

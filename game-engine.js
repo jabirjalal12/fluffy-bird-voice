@@ -77,6 +77,7 @@ class GameEngine {
             window.audioController.onFlap = (vol) => {
                 if (this.state === 'PLAYING') {
                     this.bird.flap(1.0);
+                    if (window.sfx) window.sfx.playFlap();
                 }
             };
         }
@@ -84,8 +85,14 @@ class GameEngine {
 
     startGame() {
         if (window.sfx) window.sfx.init();
-        if (window.audioController && !window.audioController.isListening) {
-            window.audioController.initMicrophone();
+        if (window.audioController) {
+            if (window.audioController.audioCtx && window.audioController.audioCtx.state === 'suspended') {
+                window.audioController.audioCtx.resume();
+            }
+            if (!window.audioController.isListening) {
+                window.audioController.initMicrophone();
+            }
+            this.setupAudioListeners();
         }
 
         this.bird.reset();

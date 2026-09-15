@@ -1,6 +1,6 @@
 /**
  * AudioController - High Precision Voice Intensity & Speech Trigger Handler
- * Uses Web Audio API with float time-domain and frequency band analysis for instantaneous voice detection.
+ * Uses Web Audio API with peak amplitude, float time-domain RMS, and voice band energy.
  */
 class AudioController {
     constructor() {
@@ -14,18 +14,19 @@ class AudioController {
         this.isCalibrating = false;
         this._loopRunning = false;
 
-        // Settings (Optimized for instant speech reactivity)
+        // Settings (Optimized for instant, effortless speech reactivity)
         this.mode = 'vocal_flap'; // 'vocal_flap' or 'continuous_float'
-        this.sensitivity = 1.0;
-        this.threshold = 0.12;    // High-sensitivity speech threshold
-        this.ambientNoise = 0.005; // Adaptive background noise floor tracker
+        this.sensitivity = 1.15;
+        this.threshold = 0.08;    // High-sensitivity speech trigger threshold
+        this.ambientNoise = 0.003; // Adaptive background noise floor tracker
 
         // Runtime state
         this.currentVolume = 0;
         this.smoothedVolume = 0;
         this.rawRms = 0;
+        this.rawPeak = 0;
         this.lastFlapTime = 0;
-        this.flapCooldownMs = 160; // Snappy 160ms cooldown for rapid flaps
+        this.flapCooldownMs = 150; // Snappy 150ms cooldown for rapid flaps
         this.hasTriggeredInCurrentBurst = false;
 
         // Callbacks
@@ -52,12 +53,12 @@ class AudioController {
                 return true;
             }
 
-            // Cross-platform media stream constraints with fallback
+            // High-fidelity, zero-suppression audio stream for instant game triggers
             let stream = null;
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
-                        echoCancellation: true,
+                        echoCancellation: false,
                         noiseSuppression: false,
                         autoGainControl: true
                     }
@@ -71,7 +72,7 @@ class AudioController {
             this.microphone = this.audioCtx.createMediaStreamSource(stream);
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 512;
-            this.analyser.smoothingTimeConstant = 0.15;
+            this.analyser.smoothingTimeConstant = 0.10; // Rapid reaction
 
             this.microphone.connect(this.analyser);
             this.floatArray = new Float32Array(this.analyser.fftSize);
@@ -96,12 +97,17 @@ class AudioController {
 
         const update = () => {
             if (this.isListening) {
+                // Ensure audio context is active
+                if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+
                 this.analyzeAudio();
 
                 if (this.onLevelUpdate) {
                     const isTriggered = this.mode === 'vocal_flap' 
                         ? (this.smoothedVolume >= this.threshold || this.currentVolume >= this.threshold)
-                        : this.smoothedVolume > 0.04;
+                        : this.smoothedVolume > 0.03;
                     this.onLevelUpdate(this.smoothedVolume, this.threshold, isTriggered, this.currentVolume, this.rawRms);
                 }
             }
@@ -113,41 +119,47 @@ class AudioController {
     analyzeAudio() {
         if (!this.analyser || !this.floatArray) return;
 
-        // 1. Time-Domain Float Precision RMS
+        // 1. Time-Domain Peak Sample & Float RMS
         this.analyser.getFloatTimeDomainData(this.floatArray);
         let sumSquares = 0;
+        let peakVal = 0;
         for (let i = 0; i < this.floatArray.length; i++) {
             const sample = this.floatArray[i];
+            const abs = Math.abs(sample);
+            if (abs > peakVal) peakVal = abs;
             sumSquares += sample * sample;
         }
         const rms = Math.sqrt(sumSquares / this.floatArray.length);
         this.rawRms = rms;
+        this.rawPeak = peakVal;
 
-        // 2. Frequency-Domain Voice Band Energy (150Hz - 3200Hz)
+        // 2. Frequency-Domain Vocal Energy (150Hz - 3400Hz)
         let voiceFreqEnergy = 0;
         if (this.freqArray) {
             this.analyser.getByteFrequencyData(this.freqArray);
             let freqSum = 0;
             const startBin = 2;
-            const endBin = Math.min(36, this.freqArray.length);
+            const endBin = Math.min(48, this.freqArray.length);
             for (let i = startBin; i < endBin; i++) {
                 freqSum += this.freqArray[i];
             }
             voiceFreqEnergy = (freqSum / ((endBin - startBin) * 255));
         }
 
-        // 3. Dynamic Ambient Tracking (Fast adapts to room silence)
-        if (rms < this.ambientNoise * 1.6 || this.ambientNoise === 0) {
-            this.ambientNoise = this.ambientNoise * 0.96 + rms * 0.04;
+        // 3. Dynamic Baseline Tracking (Fast adapts to room silence)
+        if (rms < this.ambientNoise * 1.5 || this.ambientNoise === 0) {
+            this.ambientNoise = this.ambientNoise * 0.95 + rms * 0.05;
         }
 
-        // 4. Combined Vocal Score
-        const rmsSignal = Math.max(0, rms - this.ambientNoise * 0.85);
-        const combinedScore = (rmsSignal * 9.0) + (voiceFreqEnergy * 0.40);
+        // 4. Combined Vocal Score (Peak + RMS + Voice Frequency)
+        const rmsSignal = Math.max(0, rms - this.ambientNoise * 0.75);
+        const peakSignal = Math.max(0, peakVal - this.ambientNoise * 1.5);
+        
+        const combinedScore = (peakSignal * 1.8) + (rmsSignal * 12.0) + (voiceFreqEnergy * 0.50);
         let rawVolume = Math.min(1.0, combinedScore * this.sensitivity);
 
-        // Smoothing for UI & Flight Physics
-        const currentSmoothing = this.mode === 'continuous_float' ? 0.45 : 0.60;
+        // Responsive Smoothing for UI & Physics
+        const currentSmoothing = this.mode === 'continuous_float' ? 0.35 : 0.45;
         this.smoothedVolume = (this.smoothedVolume * currentSmoothing) + (rawVolume * (1 - currentSmoothing));
         this.currentVolume = rawVolume;
 
@@ -165,8 +177,8 @@ class AudioController {
                     }
                 }
             } else {
-                // Unlock burst once volume drops below threshold * 0.70
-                if (effectiveVol < this.threshold * 0.70) {
+                // Reset trigger lock once sound drops below 65% of threshold
+                if (effectiveVol < this.threshold * 0.65) {
                     this.hasTriggeredInCurrentBurst = false;
                 }
             }
@@ -175,12 +187,12 @@ class AudioController {
 
     getCurrentIntensity() {
         if (!this.isListening) return 0;
-        if (this.smoothedVolume < 0.02) return 0;
+        if (this.smoothedVolume < 0.015) return 0;
         
-        // Scale relative to threshold so gentle hum creates smooth climb
-        const targetRef = Math.max(0.05, this.threshold);
-        const norm = Math.min(1.0, this.smoothedVolume / (targetRef * 1.15));
-        return Math.pow(norm, 0.68); // Responsive lift curve
+        // Responsive lift curve for continuous humming/singing
+        const targetRef = Math.max(0.04, this.threshold);
+        const norm = Math.min(1.0, this.smoothedVolume / (targetRef * 1.2));
+        return Math.pow(norm, 0.65);
     }
 
     async autoCalibrate(durationMs = 2000, progressCallback = null) {
@@ -215,10 +227,10 @@ class AudioController {
                     this.isCalibrating = false;
 
                     const avg = samples.reduce((a, b) => a + b, 0) / (samples.length || 1);
-                    const max = Math.max(...samples, 0.005);
+                    const max = Math.max(...samples, 0.003);
 
-                    this.ambientNoise = Math.min(0.05, Math.max(0.003, avg));
-                    this.threshold = Math.min(0.30, Math.max(0.08, max * 4.5 + 0.03));
+                    this.ambientNoise = Math.min(0.04, Math.max(0.002, avg));
+                    this.threshold = Math.min(0.24, Math.max(0.05, max * 4.0 + 0.02));
 
                     resolve({
                         avgAmbient: avg,
@@ -233,15 +245,15 @@ class AudioController {
 
     setSensitivityPreset(preset) {
         if (preset === 'quiet') {
-            this.sensitivity = 1.35;
-            this.threshold = 0.09;
+            this.sensitivity = 1.45;
+            this.threshold = 0.05;
         } else if (preset === 'noisy') {
-            this.sensitivity = 0.75;
-            this.threshold = 0.20;
+            this.sensitivity = 0.85;
+            this.threshold = 0.16;
         } else {
             // 'normal'
-            this.sensitivity = 1.0;
-            this.threshold = 0.12;
+            this.sensitivity = 1.15;
+            this.threshold = 0.08;
         }
     }
 

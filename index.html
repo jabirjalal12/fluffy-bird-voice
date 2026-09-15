@@ -751,8 +751,14 @@
 
         // Step 3: Launch
         if (btnWizardLaunch) {
-            btnWizardLaunch.addEventListener('click', (e) => {
+            btnWizardLaunch.addEventListener('click', async (e) => {
                 e.stopPropagation();
+                if (window.audioController.audioCtx && window.audioController.audioCtx.state === 'suspended') {
+                    await window.audioController.audioCtx.resume();
+                }
+                if (!window.audioController.isListening) {
+                    await window.audioController.initMicrophone();
+                }
                 closeWizard();
                 engine.startGame();
                 if (window.sfx) window.sfx.playHighscore();
@@ -1005,6 +1011,9 @@
         btnStart.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
+            if (window.audioController.audioCtx && window.audioController.audioCtx.state === 'suspended') {
+                await window.audioController.audioCtx.resume();
+            }
             if (!window.audioController.isListening) {
                 await window.audioController.initMicrophone();
             }
@@ -1015,6 +1024,9 @@
         btnRestart.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
+            if (window.audioController.audioCtx && window.audioController.audioCtx.state === 'suspended') {
+                await window.audioController.audioCtx.resume();
+            }
             if (!window.audioController.isListening) {
                 await window.audioController.initMicrophone();
             }

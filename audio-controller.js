@@ -209,6 +209,20 @@ class AudioController {
         this.sensitivity = Math.max(0.2, Math.min(3.0, parseFloat(val)));
     }
 
+    setSensitivityPreset(preset) {
+        if (preset === 'quiet') {
+            this.sensitivity = 1.35;
+            this.threshold = 0.16;
+        } else if (preset === 'noisy') {
+            this.sensitivity = 0.85;
+            this.threshold = 0.26;
+        } else {
+            // 'normal'
+            this.sensitivity = 1.0;
+            this.threshold = 0.20;
+        }
+    }
+
     setMode(mode) {
         if (mode === 'vocal_flap' || mode === 'continuous_float') {
             this.mode = mode;

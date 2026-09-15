@@ -49,7 +49,6 @@ class SoundEffects {
         try {
             const now = this.ctx.currentTime;
             
-            // 2-tone melodic chime
             [0, 0.08].forEach((delay, index) => {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
@@ -141,6 +140,56 @@ class SoundEffects {
 
             osc.start(now);
             osc.stop(now + 0.05);
+        } catch (e) {
+            console.error('Audio SFX error', e);
+        }
+    }
+
+    playStep() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } catch (e) {
+            console.error('Audio SFX error', e);
+        }
+    }
+
+    playIntro() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const notes = [440, 554.37, 659.25, 880]; // A4, C#5, E5, A5
+            notes.forEach((freq, idx) => {
+                const now = this.ctx.currentTime + idx * 0.08;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.25);
+            });
         } catch (e) {
             console.error('Audio SFX error', e);
         }

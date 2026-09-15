@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;800;900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;800;900&display=swap');
 
 :root {
     --bg-grad-1: #ffd1dc;
@@ -416,274 +416,71 @@ body {
     height: 36px;
 }
 
-/* Top Clean Player Voice Status Pill */
-.hud-voice-status {
+/* Audio Mic Meter in Viewport Top */
+.hud-mic-meter {
     position: absolute;
     top: 14px;
     left: 16px;
     right: 16px;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 16px;
-    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 5px 12px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    gap: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     pointer-events: auto;
-    z-index: 10;
-    transition: all 0.2s ease;
-    border: 1.5px solid rgba(255, 255, 255, 0.8);
-    cursor: pointer;
+    z-index: 6;
 }
 
-.hud-voice-status.listening {
-    background: rgba(238, 248, 255, 0.95);
-    border-color: #4cc9f0;
-}
-
-.hud-voice-status.active {
-    background: linear-gradient(135deg, rgba(255, 240, 243, 0.96), rgba(255, 243, 191, 0.96));
-    border-color: #ff5c8a;
-    box-shadow: 0 4px 20px rgba(255, 92, 138, 0.25);
-    transform: scale(1.02);
-}
-
-.hud-status-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #4CAF50;
-    box-shadow: 0 0 8px #4CAF50;
-    transition: all 0.2s ease;
-}
-
-.hud-voice-status.listening .status-dot {
-    background: #4cc9f0;
-    box-shadow: 0 0 8px #4cc9f0;
-    animation: dotPulse 1.2s infinite;
-}
-
-.hud-voice-status.active .status-dot {
-    background: #ff5c8a;
-    box-shadow: 0 0 10px #ff5c8a;
-    transform: scale(1.3);
-}
-
-@keyframes dotPulse {
-    0%, 100% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.4); opacity: 1; }
-}
-
-.hud-status-icon {
+.mic-icon-pulse {
     font-size: 15px;
+    transition: transform 0.1s;
 }
 
-.hud-status-text {
-    font-size: 12px;
-    font-weight: 800;
-    color: #2b2d42;
-    letter-spacing: 0.2px;
+.mic-icon-pulse.active {
+    transform: scale(1.35);
 }
 
-.hud-status-tag {
-    font-size: 9.5px;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 8px;
-    background: rgba(76, 175, 80, 0.12);
-    color: #2e7d32;
-    text-transform: uppercase;
-}
-
-.hud-voice-status.listening .hud-status-tag {
-    background: rgba(76, 201, 240, 0.15);
-    color: #0077b6;
-}
-
-.hud-voice-status.active .hud-status-tag {
-    background: rgba(255, 92, 138, 0.18);
-    color: #ff006e;
-}
-
-/* ======================================================= */
-/* Developer / Admin Diagnostics Floating Cyberpunk HUD   */
-/* ======================================================= */
-.dev-diagnostics-overlay {
-    position: fixed;
-    top: 14px;
-    right: 14px;
-    width: 290px;
-    background: rgba(10, 15, 29, 0.94);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1.5px solid rgba(76, 201, 240, 0.35);
-    border-radius: 18px;
-    padding: 14px;
-    color: #e2e8f0;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 11px;
-    z-index: 12000;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-    pointer-events: auto;
-    animation: diagSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes diagSlideIn {
-    0% { opacity: 0; transform: translateY(-10px) scale(0.95); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.dev-diag-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 8px;
-    margin-bottom: 10px;
-}
-
-.dev-diag-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    font-weight: 800;
-    color: #4cc9f0;
-    letter-spacing: 0.5px;
-}
-
-.dev-diag-close {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: #cbd5e1;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dev-diag-close:hover {
-    background: rgba(255, 92, 138, 0.3);
-    color: white;
-}
-
-.diag-metric-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 5px 0;
-}
-
-.diag-metric-row.highlight {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 4px 6px;
-    border-radius: 8px;
-}
-
-.diag-label {
-    color: #94a3b8;
-}
-
-.diag-val {
-    font-weight: 700;
-    color: #f8fafc;
-}
-
-.diag-val-badge {
-    font-size: 10px;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: #1e293b;
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.3);
-}
-
-.diag-val-badge.confirmed {
-    background: rgba(255, 92, 138, 0.25);
-    color: #ff5c8a;
-    border-color: #ff5c8a;
-}
-
-.diag-val-badge.possible {
-    background: rgba(255, 190, 11, 0.2);
-    color: #ffbe0b;
-    border-color: #ffbe0b;
-}
-
-.diag-bar-wrapper {
+.meter-track {
     flex: 1;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    margin: 0 8px;
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 6px;
+    position: relative;
     overflow: hidden;
 }
 
-.diag-bar-fill {
+.meter-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4cc9f0, #ff5c8a);
-    border-radius: 3px;
-    transition: width 0.04s linear;
-}
-
-.diag-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.08);
-    margin: 8px 0;
-}
-
-.diag-subtitle {
-    font-size: 9.5px;
-    font-weight: 700;
-    color: #94a3b8;
-    margin-bottom: 4px;
-}
-
-.diag-tags-row {
-    display: flex;
-    gap: 6px;
-}
-
-.diag-tag {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: 0%;
+    background: linear-gradient(90deg, #4cc9f0, #ff6b8b);
     border-radius: 6px;
-    padding: 3px 4px;
-    text-align: center;
-    font-size: 9px;
-    color: #cbd5e1;
+    transition: width 0.05s linear;
 }
 
-.diag-tag b {
-    color: #ffbe0b;
+.meter-fill.triggered {
+    background: linear-gradient(90deg, #ffbe0b, #ff006e);
+    box-shadow: 0 0 10px #ff006e;
 }
 
-.diag-hint {
-    margin-top: 8px;
-    text-align: center;
-    font-size: 8.5px;
-    color: #64748b;
+.meter-threshold-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #2b2d42;
+    z-index: 2;
+    border-radius: 2px;
 }
 
-.diag-hint kbd {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 1px 4px;
-    border-radius: 4px;
-    color: #94a3b8;
+.meter-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    min-width: 52px;
+    text-align: right;
 }
 
 /* Game Over Card */

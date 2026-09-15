@@ -17,19 +17,19 @@
 <div class="loading-screen active" id="loading-screen">
     <div class="loading-content">
         <div class="loading-bird-anim">
-            <div class="loading-egg">🥚</div>
-            <div class="loading-bird">🐥</div>
-            <div class="loading-sparkle s1">✨</div>
-            <div class="loading-sparkle s2">⭐</div>
-            <div class="loading-sparkle s3">💫</div>
+            <div class="loading-egg">≡ƒÑÜ</div>
+            <div class="loading-bird">≡ƒÉÑ</div>
+            <div class="loading-sparkle s1">Γ£¿</div>
+            <div class="loading-sparkle s2">Γ¡É</div>
+            <div class="loading-sparkle s3">≡ƒÆ½</div>
         </div>
 
         <h1 class="loading-title animated-rainbow-text">FLUFFY BIRD</h1>
-        <div class="loading-subtitle">🎙️ Voice Controlled Arcade</div>
+        <div class="loading-subtitle">≡ƒÄÖ∩╕Å Voice Controlled Arcade</div>
 
         <!-- Developer Credit Badge -->
         <div class="dev-credit-pill">
-            <span class="dev-star">✨</span>
+            <span class="dev-star">Γ£¿</span>
             <span>Developed by <strong>Jabir Jalal</strong></span>
         </div>
 
@@ -49,30 +49,30 @@
     <div class="game-viewport" id="viewport">
         <canvas id="game-canvas"></canvas>
 
-        <!-- Top Clean Player Voice Status Pill -->
-        <div class="hud-voice-status" id="hud-voice-status" title="Voice Status (Click for Settings)">
-            <div class="hud-status-left">
-                <span class="status-dot" id="hud-status-dot"></span>
-                <span class="hud-status-icon" id="hud-status-icon">🐦</span>
-                <span class="hud-status-text" id="hud-status-text">Bird Ready</span>
+        <!-- Top Live Audio Meter -->
+        <div class="hud-mic-meter" id="hud-mic-meter" title="Click to Test / Calibrate Mic">
+            <span class="mic-icon-pulse" id="mic-icon">≡ƒÄÖ∩╕Å</span>
+            <div class="meter-track" id="meter-track">
+                <div class="meter-fill" id="meter-fill"></div>
+                <div class="meter-threshold-line" id="meter-threshold-line" style="left: 15%;"></div>
             </div>
-            <span class="hud-status-tag" id="hud-status-tag">READY</span>
+            <span class="meter-label" id="meter-label">Ready</span>
         </div>
 
         <!-- In-Game HUD -->
         <div class="game-hud" id="hud">
             <div class="score-badge">
-                <span>⭐</span>
+                <span>Γ¡É</span>
                 <span id="current-score-text">0</span>
             </div>
             <div class="speed-badge" id="speed-badge" title="Flight Speed Multiplier">
-                <span>⚡</span>
+                <span>ΓÜí</span>
                 <span id="speed-text">1.0x</span>
             </div>
             <div class="hud-actions-group">
-                <button class="btn-secondary btn-icon-only" id="btn-hud-settings" title="Settings & Calibration (S)">⚙️</button>
-                <button class="btn-secondary btn-icon-only" id="btn-hud-fullscreen" title="Toggle Fullscreen (F)">⛶</button>
-                <button class="btn-secondary btn-icon-only" id="btn-hud-sound" title="Toggle Sound (M)">🔊</button>
+                <button class="btn-secondary btn-icon-only" id="btn-hud-settings" title="Settings & Calibration (S)">ΓÜÖ∩╕Å</button>
+                <button class="btn-secondary btn-icon-only" id="btn-hud-fullscreen" title="Toggle Fullscreen (F)">Γ¢╢</button>
+                <button class="btn-secondary btn-icon-only" id="btn-hud-sound" title="Toggle Sound (M)">≡ƒöè</button>
             </div>
         </div>
 
@@ -91,26 +91,26 @@
 
             <div class="title-group">
                 <h1 class="game-title animated-rainbow-text">FLUFFY BIRD</h1>
-                <div class="game-subtitle">🎙️ Voice Controlled Arcade</div>
+                <div class="game-subtitle">≡ƒÄÖ∩╕Å Voice Controlled Arcade</div>
             </div>
 
             <button class="btn-primary btn-pulsate" id="btn-start-game">
-                <span id="btn-start-icon">🎤</span>
+                <span id="btn-start-icon">≡ƒÄñ</span>
                 <span id="btn-start-text">PLAY GAME</span>
             </button>
 
             <div class="menu-sub-actions">
                 <button class="btn-secondary btn-settings-trigger" id="btn-start-settings">
-                    <span>⚙️ Voice & Mode Settings</span>
+                    <span>ΓÜÖ∩╕Å Voice & Mode Settings</span>
                 </button>
             </div>
 
             <div class="menu-sub-actions" style="margin-top: 6px;">
                 <button class="btn-secondary" id="btn-start-fullscreen">
-                    <span>⛶ Fullscreen</span>
+                    <span>Γ¢╢ Fullscreen</span>
                 </button>
                 <button class="btn-secondary" id="btn-start-sound">
-                    <span id="btn-start-sound-label">🔊 Sound On</span>
+                    <span id="btn-start-sound-label">≡ƒöè Sound On</span>
                 </button>
             </div>
 
@@ -120,7 +120,7 @@
 
             <!-- Permanent Developer Credit Badge on Start Menu -->
             <div class="menu-dev-credit">
-                <span>✨ Developed by <strong>Jabir Jalal</strong></span>
+                <span>Γ£¿ Developed by <strong>Jabir Jalal</strong></span>
             </div>
         </div>
 
@@ -128,7 +128,7 @@
         <div class="overlay-screen" id="gameover-screen">
             <div class="gameover-card">
                 <h2 style="font-size: 26px; color: #ff5c8a; margin-bottom: 6px;">GAME OVER</h2>
-                <div class="medal-chip" id="medal-icon">🥚 Baby Chick</div>
+                <div class="medal-chip" id="medal-icon">≡ƒÑÜ Baby Chick</div>
 
                 <div class="score-row">
                     <span>Score:</span>
@@ -152,15 +152,15 @@
 
                 <div style="display: flex; gap: 8px; margin-top: 14px;">
                     <button class="btn-secondary" id="btn-gameover-settings" style="flex: 1; justify-content: center;">
-                        <span>⚙️ Settings</span>
+                        <span>ΓÜÖ∩╕Å Settings</span>
                     </button>
                     <button class="btn-primary" id="btn-restart-game" style="flex: 2; justify-content: center; margin: 0;">
-                        <span>🔄 PLAY AGAIN</span>
+                        <span>≡ƒöä PLAY AGAIN</span>
                     </button>
                 </div>
 
                 <div class="gameover-dev-credit">
-                    <span>Fluffy Bird • Developed by <strong>Jabir Jalal</strong></span>
+                    <span>Fluffy Bird ΓÇó Developed by <strong>Jabir Jalal</strong></span>
                 </div>
             </div>
         </div>
@@ -168,7 +168,7 @@
 </div>
 
 <!-- ============================================== -->
-<!-- Streamlined 2-Step Flight Setup Modal         -->
+<!-- Advanced 3-Step Setup & Settings Window Modal -->
 <!-- ============================================== -->
 <div class="modal-backdrop" id="wizard-modal">
     <div class="wizard-box-container">
@@ -177,9 +177,9 @@
 
         <div class="wizard-box">
             <!-- Modal Close Button -->
-            <button class="modal-close-btn" id="btn-wizard-close" title="Close Settings">✕</button>
+            <button class="modal-close-btn" id="btn-wizard-close" title="Close Settings">Γ£ò</button>
 
-            <!-- Progress Steps Indicator (2 Steps) -->
+            <!-- Progress Steps Indicator -->
             <div class="wizard-progress-bar">
                 <div class="wizard-step-dot active" id="dot-step-1" data-step="1">
                     <span class="step-num">1</span>
@@ -188,55 +188,88 @@
                 <div class="wizard-step-line" id="line-step-1"></div>
                 <div class="wizard-step-dot" id="dot-step-2" data-step="2">
                     <span class="step-num">2</span>
-                    <span class="step-label">Bird Style</span>
+                    <span class="step-label">Voice Studio</span>
+                </div>
+                <div class="wizard-step-line" id="line-step-2"></div>
+                <div class="wizard-step-dot" id="dot-step-3" data-step="3">
+                    <span class="step-num">3</span>
+                    <span class="step-label">Character</span>
                 </div>
             </div>
 
-            <!-- STEP 1: Flight Mode Selection with Live Voice Simulator -->
+            <!-- STEP 1: Flight Mode Selection -->
             <div class="wizard-page active" id="wizard-page-1">
                 <div class="wizard-hero-anim">
-                    <div class="wizard-bird-preview" id="wizard-mode-bird">🐥</div>
-                    <div class="particle-sparkle" style="top: 0; left: 35%;">✨</div>
-                    <div class="particle-sparkle" style="bottom: 10px; right: 35%;">💫</div>
+                    <div class="wizard-bird-preview" id="wizard-mode-bird">≡ƒÉÑ</div>
+                    <div class="particle-sparkle" style="top: 0; left: 35%;">Γ£¿</div>
+                    <div class="particle-sparkle" style="bottom: 10px; right: 35%;">≡ƒÆ½</div>
                 </div>
                 <h3 class="wizard-title">Select Flight Mode</h3>
-                <p class="wizard-subtitle">Zero setup needed! Choose how your voice commands the bird:</p>
+                <p class="wizard-subtitle">Choose how your voice commands the fluffy bird:</p>
 
                 <div class="mode-card-grid">
                     <div class="mode-card active" id="card-mode-flap">
                         <div class="mode-card-badge">CLASSIC ARCADE</div>
                         <div class="mode-card-icon-wrapper">
-                            <span class="mode-card-icon">⚡🎙️</span>
+                            <span class="mode-card-icon">ΓÜí≡ƒÄÖ∩╕Å</span>
                         </div>
                         <h4 class="mode-card-title">Vocal Flap</h4>
-                        <p class="mode-card-desc">Say <strong>"Hop!"</strong>, <strong>"Jump!"</strong>, or <strong>"Ah!"</strong> to flap upwards!</p>
+                        <p class="mode-card-desc">Say <strong>"Hop!"</strong>, <strong>"Jump!"</strong>, or <strong>"Ah!"</strong> to flap upwards. Great for precision dodging!</p>
                         <div class="mode-status-indicator">SELECTED</div>
                     </div>
                     <div class="mode-card" id="card-mode-float">
                         <div class="mode-card-badge" style="background: #4cc9f0;">CONTINUOUS</div>
                         <div class="mode-card-icon-wrapper">
-                            <span class="mode-card-icon">🌊🐥</span>
+                            <span class="mode-card-icon">≡ƒîè≡ƒÉÑ</span>
                         </div>
                         <h4 class="mode-card-title">Voice Float</h4>
-                        <p class="mode-card-desc">Hum or sing continuously to float and climb into the clouds!</p>
+                        <p class="mode-card-desc">Hum, sing, or hold your voice to hover and climb. Louder hums float higher!</p>
                         <div class="mode-status-indicator">SELECTED</div>
                     </div>
                 </div>
 
-                <!-- Live Auto-Voice Simulator: reacts live to player voice -->
+                <div class="wizard-nav-buttons">
+                    <button class="btn-primary" id="btn-wizard-next-1" style="width: 100%; justify-content: center;">
+                        <span>Next: Microphone & Voice Studio</span>
+                        <span>Γ₧í∩╕Å</span>
+                    </button>
+                </div>
+
+                <div class="wizard-dev-credit">
+                    <span>Fluffy Bird ΓÇó Developed by <strong>Jabir Jalal</strong></span>
+                </div>
+            </div>
+
+            <!-- STEP 2: Microphone Permission & Live Voice Studio Visualizer -->
+            <div class="wizard-page" id="wizard-page-2">
+                <h3 class="wizard-title">≡ƒÄÖ∩╕Å Live Voice Studio</h3>
+                <p class="wizard-subtitle">Calibrate mic sensitivity and test your voice live:</p>
+
+                <div class="wizard-mic-status-card" id="wizard-mic-card">
+                    <div class="mic-status-indicator" id="wizard-mic-indicator">
+                        <span class="mic-status-icon" id="wizard-mic-icon">≡ƒÄñ</span>
+                        <span id="wizard-mic-text">Click below to activate microphone</span>
+                    </div>
+                    <button class="btn-primary btn-pulsate" id="btn-wizard-connect-mic" style="margin: 8px auto 2px auto; padding: 10px 22px; font-size: 14px;">
+                        <span>≡ƒÄÖ∩╕Å Allow Microphone Access</span>
+                    </button>
+                </div>
+
+                <!-- Live Voice Sandbox: Mini Flight Previewer & Oscilloscope -->
                 <div class="voice-sandbox-card">
                     <div class="sandbox-top-header">
                         <div class="sandbox-title-pill">
                             <span class="pulse-dot"></span>
-                            <span>Live Voice Simulator (Auto-Calibrated)</span>
+                            <span>Live Audio Visualizer & Simulator</span>
                         </div>
-                        <span class="sandbox-feedback" id="voice-test-feedback">🟢 Bird Ready</span>
+                        <span class="sandbox-feedback" id="voice-test-feedback">Awaiting mic...</span>
                     </div>
 
+                    <!-- Dual Real-time Visualizer Canvas (Waveform + Frequency Spectrum) -->
                     <div class="oscilloscope-container">
-                        <canvas id="voice-wave-canvas" width="380" height="64"></canvas>
+                        <canvas id="voice-wave-canvas" width="380" height="70"></canvas>
                         
-                        <!-- Mini Flight Simulator Bird reacting live -->
+                        <!-- Mini Flight Simulator Bird reacting live to your voice! -->
                         <div class="mini-flight-stage" id="mini-flight-stage">
                             <div class="mini-bird-avatar" id="mini-bird-avatar">
                                 <div class="mini-bird-body"></div>
@@ -244,25 +277,64 @@
                                 <div class="mini-bird-eye"></div>
                                 <div class="mini-bird-beak"></div>
                             </div>
-                            <span class="mini-flight-label">Speak to test flight</span>
+                            <span class="mini-flight-label">Mini Flight Preview</span>
                         </div>
+                    </div>
+
+                    <!-- Live Volume Level Track & Trigger Threshold Needle -->
+                    <div class="voice-test-track">
+                        <div class="voice-test-fill" id="voice-test-fill"></div>
+                        <div class="voice-test-threshold" id="voice-test-threshold" style="left: 15%;" title="Trigger Threshold"></div>
+                    </div>
+                    <div class="voice-threshold-labels">
+                        <span>0% Silence</span>
+                        <span style="color: #ff5c8a; font-weight: 800;" id="voice-threshold-val">Trigger: 15%</span>
+                        <span>100% Loud</span>
                     </div>
                 </div>
 
-                <div class="wizard-nav-buttons">
-                    <button class="btn-primary" id="btn-wizard-next-1" style="width: 100%; justify-content: center;">
-                        <span>Next: Choose Bird Style</span>
-                        <span>➡️</span>
+                <!-- Sensitivity Presets Group -->
+                <div class="sensitivity-presets-group">
+                    <span class="preset-title">Room Acoustics Preset:</span>
+                    <div class="preset-chips-row">
+                        <button class="preset-chip" data-preset="quiet">≡ƒñ½ Quiet</button>
+                        <button class="preset-chip active" data-preset="normal">≡ƒÄÖ∩╕Å Normal</button>
+                        <button class="preset-chip" data-preset="fan_mode">≡ƒî¬∩╕Å Fan / AC</button>
+                        <button class="preset-chip" data-preset="noisy">≡ƒôó Noisy</button>
+                    </div>
+                </div>
+
+                <!-- Fan & AC Noise Suppressor Card -->
+                <div class="fan-suppressor-card active" id="fan-suppressor-card">
+                    <div class="fan-suppressor-info">
+                        <span class="fan-icon-spin" id="fan-icon-spin">≡ƒî¬∩╕Å</span>
+                        <div class="fan-text-group">
+                            <div class="fan-suppressor-title">Fan & AC Noise Suppressor</div>
+                            <div class="fan-suppressor-status" id="fan-filter-status">Active (220Hz High-Pass + Spectral Gate)</div>
+                        </div>
+                    </div>
+                    <button class="btn-fan-toggle" id="btn-fan-toggle" title="Toggle Fan Noise Suppression">
+                        <span id="fan-toggle-label">ON</span>
                     </button>
                 </div>
 
-                <div class="wizard-dev-credit">
-                    <span>Fluffy Bird • Developed by <strong>Jabir Jalal</strong></span>
+                <button class="btn-secondary btn-calibrate-shimmer" id="btn-wizard-calibrate" style="width: 100%; margin: 4px 0 12px 0;">
+                    <span>≡ƒÄ» 2-Second Ambient Auto-Calibrate</span>
+                </button>
+
+                <div class="wizard-nav-buttons split">
+                    <button class="btn-secondary" id="btn-wizard-back-2">
+                        <span>Γ¼à∩╕Å Back</span>
+                    </button>
+                    <button class="btn-primary" id="btn-wizard-next-2">
+                        <span>Next: Pick Skin</span>
+                        <span>Γ₧í∩╕Å</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- STEP 2: Character Plumage Pick & Launch -->
-            <div class="wizard-page" id="wizard-page-2">
+            <!-- STEP 3: Character Pick & Launch -->
+            <div class="wizard-page" id="wizard-page-3">
                 <div class="skin-hero-display">
                     <div class="skin-hero-avatar-wrapper" id="skin-hero-avatar">
                         <div class="hero-fluffy-bird" id="wizard-skin-bird">
@@ -303,16 +375,16 @@
                 </div>
 
                 <div class="launch-tip-card">
-                    <span style="font-size: 20px;">⚡</span>
-                    <p>Speed accelerates over time! Collect <strong>⭐ Golden Stars</strong> for extra score.</p>
+                    <span style="font-size: 20px;">ΓÜí</span>
+                    <p>Speed continuously increases as you fly! Collect <strong>Γ¡É Golden Stars</strong> for extra points.</p>
                 </div>
 
                 <div class="wizard-nav-buttons split" style="margin-top: 14px;">
-                    <button class="btn-secondary" id="btn-wizard-back-2">
-                        <span>⬅️ Back</span>
+                    <button class="btn-secondary" id="btn-wizard-back-3">
+                        <span>Γ¼à∩╕Å Back</span>
                     </button>
                     <button class="btn-primary btn-pulsate" id="btn-wizard-launch">
-                        <span>🚀 SAVE & FLY!</span>
+                        <span>≡ƒÜÇ SAVE & FLY!</span>
                     </button>
                 </div>
             </div>
@@ -320,67 +392,21 @@
     </div>
 </div>
 
-<!-- ============================================== -->
-<!-- Hidden Developer / Admin Diagnostics Overlay   -->
-<!-- Toggle via Shift+D or pressing D              -->
-<!-- ============================================== -->
-<div class="dev-diagnostics-overlay" id="dev-diagnostics-overlay" style="display: none;">
-    <div class="dev-diag-header">
-        <div class="dev-diag-title">
-            <span class="pulse-dot"></span>
-            <span>⚡ AUDIO INTELLIGENCE DIAGNOSTICS</span>
+<!-- Room Auto Calibration Modal with Sonar Radar Animation -->
+<div class="modal-backdrop" id="calib-modal">
+    <div class="modal-box calib-box-animated">
+        <div class="sonar-radar-wrapper">
+            <div class="sonar-wave wave-1"></div>
+            <div class="sonar-wave wave-2"></div>
+            <div class="sonar-wave wave-3"></div>
+            <div class="sonar-center-icon">≡ƒÄÖ∩╕Å</div>
         </div>
-        <button class="dev-diag-close" id="btn-dev-close">✕</button>
-    </div>
-
-    <div class="dev-diag-body">
-        <!-- VAD State & Confidence -->
-        <div class="diag-metric-row highlight">
-            <span class="diag-label">Microphone:</span>
-            <span class="diag-val-badge" id="diag-mic-status">CONNECTED</span>
+        <h3 style="color: #ff5c8a; font-size: 20px; margin-top: 10px; margin-bottom: 6px;">Calibrating Room Noise...</h3>
+        <p style="font-size: 13px; color: #666;">Please stay quiet for 2 seconds while we measure ambient room acoustics.</p>
+        <div class="calib-progress-bar">
+            <div class="calib-progress-fill" id="calib-fill"></div>
         </div>
-        
-        <div class="diag-metric-row">
-            <span class="diag-label">Current Level:</span>
-            <div class="diag-bar-wrapper">
-                <div class="diag-bar-fill" id="diag-level-bar" style="width: 0%;"></div>
-            </div>
-            <span class="diag-val" id="diag-level-val">0.000</span>
-        </div>
-
-        <div class="diag-metric-row">
-            <span class="diag-label">Noise Floor:</span>
-            <span class="diag-val" id="diag-floor-val">0.012</span>
-        </div>
-
-        <div class="diag-metric-row">
-            <span class="diag-label">Trigger Threshold:</span>
-            <span class="diag-val" style="color: #ff5c8a; font-weight: 800;" id="diag-threshold-val">0.045</span>
-        </div>
-
-        <div class="diag-metric-row">
-            <span class="diag-label">Sound Delta:</span>
-            <span class="diag-val" style="color: #4cc9f0;" id="diag-delta-val">+0.000</span>
-        </div>
-
-        <div class="diag-metric-row">
-            <span class="diag-label">Sound Detected:</span>
-            <span class="diag-val-badge" id="diag-detected-badge">NO</span>
-        </div>
-
-        <div class="diag-metric-row">
-            <span class="diag-label">Bird State:</span>
-            <span class="diag-val" id="diag-bird-state">IDLE</span>
-        </div>
-
-        <div class="diag-divider"></div>
-
-        <div class="diag-metric-row">
-            <span class="diag-label">Total Triggers:</span>
-            <span class="diag-val" style="color: #4CAF50;" id="diag-events-count">0</span>
-        </div>
-
-        <div class="diag-hint">Press <kbd>Shift</kbd>+<kbd>D</kbd> to toggle diagnostics</div>
+        <p style="font-size: 11px; color: #888;">Optimizing speech detection filter...</p>
     </div>
 </div>
 
@@ -450,41 +476,52 @@
         const btnStartSettings = document.getElementById('btn-start-settings');
         const btnGameoverSettings = document.getElementById('btn-gameover-settings');
 
-        // Player Voice Status HUD
-        const hudVoiceStatus = document.getElementById('hud-voice-status');
-        const hudStatusDot = document.getElementById('hud-status-dot');
-        const hudStatusIcon = document.getElementById('hud-status-icon');
-        const hudStatusText = document.getElementById('hud-status-text');
-        const hudStatusTag = document.getElementById('hud-status-tag');
+        const hudMicMeter = document.getElementById('hud-mic-meter');
+        const meterFill = document.getElementById('meter-fill');
+        const meterThresholdLine = document.getElementById('meter-threshold-line');
+        const meterLabel = document.getElementById('meter-label');
+        const micIcon = document.getElementById('mic-icon');
 
-        // Developer Diagnostics Overlay References
-        const devOverlay = document.getElementById('dev-diagnostics-overlay');
-        const btnDevClose = document.getElementById('btn-dev-close');
-        const diagMicStatus = document.getElementById('diag-mic-status');
-        const diagLevelBar = document.getElementById('diag-level-bar');
-        const diagLevelVal = document.getElementById('diag-level-val');
-        const diagFloorVal = document.getElementById('diag-floor-val');
-        const diagThresholdVal = document.getElementById('diag-threshold-val');
-        const diagDeltaVal = document.getElementById('diag-delta-val');
-        const diagDetectedBadge = document.getElementById('diag-detected-badge');
-        const diagBirdState = document.getElementById('diag-bird-state');
-        const diagEventsCount = document.getElementById('diag-events-count');
+        const calibModal = document.getElementById('calib-modal');
+        const calibFill = document.getElementById('calib-fill');
 
-        // Streamlined 2-Step Wizard UI References
+        // Wizard UI References
         const wizardModal = document.getElementById('wizard-modal');
         const btnWizardClose = document.getElementById('btn-wizard-close');
         const dotStep1 = document.getElementById('dot-step-1');
         const dotStep2 = document.getElementById('dot-step-2');
+        const dotStep3 = document.getElementById('dot-step-3');
         const lineStep1 = document.getElementById('line-step-1');
+        const lineStep2 = document.getElementById('line-step-2');
         const page1 = document.getElementById('wizard-page-1');
         const page2 = document.getElementById('wizard-page-2');
+        const page3 = document.getElementById('wizard-page-3');
 
         const cardModeFlap = document.getElementById('card-mode-flap');
         const cardModeFloat = document.getElementById('card-mode-float');
         const btnWizardNext1 = document.getElementById('btn-wizard-next-1');
+        const btnWizardNext2 = document.getElementById('btn-wizard-next-2');
         const btnWizardBack2 = document.getElementById('btn-wizard-back-2');
+        const btnWizardBack3 = document.getElementById('btn-wizard-back-3');
         const btnWizardLaunch = document.getElementById('btn-wizard-launch');
+
+        const wizardMicCard = document.getElementById('wizard-mic-card');
+        const wizardMicIcon = document.getElementById('wizard-mic-icon');
+        const wizardMicText = document.getElementById('wizard-mic-text');
+        const btnWizardConnectMic = document.getElementById('btn-wizard-connect-mic');
+        const voiceTestFill = document.getElementById('voice-test-fill');
+        const voiceTestThreshold = document.getElementById('voice-test-threshold');
+        const voiceThresholdVal = document.getElementById('voice-threshold-val');
         const voiceTestFeedback = document.getElementById('voice-test-feedback');
+        const presetChips = document.querySelectorAll('.preset-chip');
+        const btnWizardCalibrate = document.getElementById('btn-wizard-calibrate');
+
+        // Fan Suppressor UI References
+        const fanSuppressorCard = document.getElementById('fan-suppressor-card');
+        const btnFanToggle = document.getElementById('btn-fan-toggle');
+        const fanToggleLabel = document.getElementById('fan-toggle-label');
+        const fanFilterStatus = document.getElementById('fan-filter-status');
+        const fanIconSpin = document.getElementById('fan-icon-spin');
 
         // Mini Flight & Oscilloscope Canvas
         const voiceWaveCanvas = document.getElementById('voice-wave-canvas');
@@ -506,21 +543,6 @@
             if (startHintText) startHintText.innerHTML = 'Press <strong>PLAY GAME</strong> or <kbd>Space</kbd> to fly! Use <kbd>F</kbd> for Fullscreen, <kbd>S</kbd> for Settings.';
         }
 
-        // Developer Diagnostics Overlay Toggle
-        function toggleDevOverlay() {
-            if (!devOverlay) return;
-            const isShown = devOverlay.style.display !== 'none';
-            devOverlay.style.display = isShown ? 'none' : 'block';
-        }
-
-        if (btnDevClose) {
-            btnDevClose.addEventListener('click', (e) => {
-                e.stopPropagation();
-                devOverlay.style.display = 'none';
-            });
-            btnDevClose.addEventListener('pointerdown', (e) => e.stopPropagation());
-        }
-
         function openWizard(step = 1) {
             if (engine && engine.state === 'PLAYING') {
                 engine.state = 'PAUSED';
@@ -529,10 +551,6 @@
             goToWizardStep(step);
             if (window.sfx) window.sfx.playIntro();
             startOscilloscopeLoop();
-            
-            if (!window.audioController.isListening) {
-                window.audioController.initMicrophone();
-            }
         }
 
         function closeWizard() {
@@ -557,7 +575,7 @@
             btnHudSettings.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                openWizard(1);
+                openWizard(2);
             });
             btnHudSettings.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
@@ -590,8 +608,8 @@
             });
         }
 
-        // Stepper Navigation (2 Steps)
-        [dotStep1, dotStep2].forEach(dot => {
+        // Stepper Navigation
+        [dotStep1, dotStep2, dotStep3].forEach(dot => {
             if (!dot) return;
             dot.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -602,9 +620,10 @@
         });
 
         function goToWizardStep(step) {
-            [page1, page2].forEach(p => { if (p) p.classList.remove('active'); });
-            [dotStep1, dotStep2].forEach(d => { if (d) d.classList.remove('active'); });
+            [page1, page2, page3].forEach(p => { if (p) p.classList.remove('active'); });
+            [dotStep1, dotStep2, dotStep3].forEach(d => { if (d) d.classList.remove('active'); });
             if (lineStep1) lineStep1.classList.remove('active');
+            if (lineStep2) lineStep2.classList.remove('active');
 
             if (step === 1 && page1 && dotStep1) {
                 page1.classList.add('active');
@@ -614,6 +633,14 @@
                 dotStep1.classList.add('active');
                 dotStep2.classList.add('active');
                 if (lineStep1) lineStep1.classList.add('active');
+                connectMicrophone();
+            } else if (step === 3 && page3 && dotStep3) {
+                page3.classList.add('active');
+                dotStep1.classList.add('active');
+                dotStep2.classList.add('active');
+                dotStep3.classList.add('active');
+                if (lineStep1) lineStep1.classList.add('active');
+                if (lineStep2) lineStep2.classList.add('active');
             }
             if (window.sfx) window.sfx.playStep();
         }
@@ -645,6 +672,110 @@
             btnWizardNext1.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
+        // Step 2: Mic & Sensitivity
+        if (btnWizardConnectMic) {
+            btnWizardConnectMic.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await connectMicrophone();
+            });
+            btnWizardConnectMic.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
+        async function connectMicrophone() {
+            const ok = await window.audioController.initMicrophone();
+            updateMicStatusCard(ok);
+            return ok;
+        }
+
+        function updateMicStatusCard(isConnected) {
+            if (!wizardMicIcon) return;
+            if (isConnected) {
+                wizardMicIcon.innerText = 'Γ£à';
+                wizardMicText.innerText = 'Microphone Connected & Active!';
+                wizardMicCard.classList.add('connected');
+                btnWizardConnectMic.style.display = 'none';
+                meterLabel.innerText = 'Listening';
+                voiceTestFeedback.innerText = '≡ƒæé Listening... Speak into your mic!';
+                voiceTestFeedback.style.color = '#4CAF50';
+            } else {
+                wizardMicIcon.innerText = '≡ƒÄñ';
+                wizardMicText.innerText = 'Click below to allow microphone access';
+                wizardMicCard.classList.remove('connected');
+                btnWizardConnectMic.style.display = 'inline-flex';
+                voiceTestFeedback.innerText = 'ΓÜá∩╕Å Click Allow Microphone above';
+                voiceTestFeedback.style.color = '#888';
+            }
+        }
+
+        function syncThresholdUI() {
+            const th = window.audioController.threshold;
+            const pct = Math.round(th * 100);
+            if (meterThresholdLine) meterThresholdLine.style.left = `${pct}%`;
+            if (voiceTestThreshold) voiceTestThreshold.style.left = `${pct}%`;
+            if (voiceThresholdVal) voiceThresholdVal.innerText = `Trigger: ${pct}%`;
+        }
+
+        function updateFanSuppressorUI() {
+            const isActive = window.audioController.fanFilterActive;
+            if (fanSuppressorCard) fanSuppressorCard.classList.toggle('active', isActive);
+            if (btnFanToggle) {
+                btnFanToggle.classList.toggle('off', !isActive);
+                if (fanToggleLabel) fanToggleLabel.innerText = isActive ? 'ON' : 'OFF';
+            }
+            if (fanFilterStatus) {
+                fanFilterStatus.innerText = isActive 
+                    ? `Active (${window.audioController.highpassCutoff}Hz High-Pass + Spectral Gate)` 
+                    : 'Disabled (Raw Mic Input)';
+            }
+            if (fanIconSpin) {
+                fanIconSpin.style.animationPlayState = isActive ? 'running' : 'paused';
+            }
+        }
+
+        if (btnFanToggle) {
+            btnFanToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const newState = !window.audioController.fanFilterActive;
+                window.audioController.setFanFilter(newState);
+                updateFanSuppressorUI();
+                if (window.sfx) window.sfx.playClick();
+            });
+            btnFanToggle.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
+        presetChips.forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                e.stopPropagation();
+                presetChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                const preset = chip.getAttribute('data-preset');
+                window.audioController.setSensitivityPreset(preset);
+                syncThresholdUI();
+                updateFanSuppressorUI();
+                if (window.sfx) window.sfx.playClick();
+            });
+            chip.addEventListener('pointerdown', (e) => e.stopPropagation());
+        });
+
+        if (btnWizardCalibrate) {
+            btnWizardCalibrate.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                calibModal.classList.add('active');
+                calibFill.style.width = '0%';
+                const res = await window.audioController.autoCalibrate(2000, (prog) => {
+                    calibFill.style.width = Math.round(prog * 100) + '%';
+                });
+                calibModal.classList.remove('active');
+                if (res) {
+                    voiceTestFeedback.innerText = 'Γ£à Auto-Calibrated!';
+                    voiceTestFeedback.style.color = '#4CAF50';
+                    syncThresholdUI();
+                    connectMicrophone();
+                }
+            });
+            btnWizardCalibrate.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
         if (btnWizardBack2) {
             btnWizardBack2.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -653,7 +784,23 @@
             btnWizardBack2.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
-        // Step 2: Launch
+        if (btnWizardNext2) {
+            btnWizardNext2.addEventListener('click', (e) => {
+                e.stopPropagation();
+                goToWizardStep(3);
+            });
+            btnWizardNext2.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
+        if (btnWizardBack3) {
+            btnWizardBack3.addEventListener('click', (e) => {
+                e.stopPropagation();
+                goToWizardStep(2);
+            });
+            btnWizardBack3.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
+        // Step 3: Launch
         if (btnWizardLaunch) {
             btnWizardLaunch.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -670,16 +817,17 @@
             btnWizardLaunch.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
-        // Top HUD Voice Status click to open Settings
-        if (hudVoiceStatus) {
-            hudVoiceStatus.addEventListener('click', async (e) => {
+        // Top HUD Mic Meter click to open Voice Studio
+        if (hudMicMeter) {
+            hudMicMeter.style.cursor = 'pointer';
+            hudMicMeter.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                openWizard(1);
+                openWizard(2);
             });
-            hudVoiceStatus.addEventListener('pointerdown', (e) => e.stopPropagation());
+            hudMicMeter.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
-        // Oscilloscope Animation Loop
+        // Oscilloscope & Mini Flight Simulator Animation Loop
         let oscRunning = false;
         function startOscilloscopeLoop() {
             if (oscRunning) return;
@@ -766,14 +914,15 @@
                     waveCtx.shadowBlur = 0;
                 }
 
-                // Mini Flight Physics in Step 1 Preview
-                if (miniBirdAvatar && page1 && page1.classList.contains('active')) {
+                // Mini Flight Physics in Step 2 Preview
+                if (miniBirdAvatar && page2 && page2.classList.contains('active')) {
                     const isContinuous = window.audioController.mode === 'continuous_float';
-                    const isVoiceActive = window.audioController.isSoundTriggered;
-                    const intensity = window.audioController.getCurrentIntensity();
+                    const vol = window.audioController.smoothedVolume;
+                    const th = window.audioController.threshold;
 
                     if (isContinuous) {
-                        if (intensity > 0.1) {
+                        const intensity = window.audioController.getCurrentIntensity();
+                        if (intensity > 0.05) {
                             miniBirdVy -= intensity * 0.6;
                             if (miniBirdWing) miniBirdWing.style.transform = 'rotate(-30deg)';
                         } else {
@@ -782,7 +931,7 @@
                         }
                     } else {
                         // Flap mode
-                        if (isVoiceActive) {
+                        if (vol >= th) {
                             miniBirdVy = -3.8;
                             if (miniBirdWing) miniBirdWing.style.transform = 'rotate(-40deg)';
                         } else {
@@ -805,79 +954,54 @@
             requestAnimationFrame(renderOsc);
         }
 
-        // ==============================================
-        // Autonomous Sound Engine UI Callbacks
-        // ==============================================
-        window.audioController.onStateChange = (state, currentLevel, intensity) => {
-            if (!hudVoiceStatus) return;
+        // Live Audio Level Updates
+        window.audioController.onLevelUpdate = (vol, threshold, isTriggered, rawVol, rawRms) => {
+            const pct = Math.min(100, Math.round(vol * 100));
+            meterFill.style.width = pct + '%';
+            
+            // HUD Meter
+            if (isTriggered) {
+                meterFill.classList.add('triggered');
+                micIcon.classList.add('active');
+            } else {
+                meterFill.classList.remove('triggered');
+                micIcon.classList.remove('active');
+            }
 
-            if (state === 'ACTIVE') {
-                hudVoiceStatus.className = 'hud-voice-status active';
-                if (hudStatusIcon) hudStatusIcon.innerText = '⚡';
-                if (hudStatusText) hudStatusText.innerText = 'Sound Detected!';
-                if (hudStatusTag) hudStatusTag.innerText = 'ACTIVE';
-
-                if (voiceTestFeedback && wizardModal.classList.contains('active')) {
-                    voiceTestFeedback.innerText = '⚡ Sound Burst Triggered!';
-                    voiceTestFeedback.style.color = '#ff5c8a';
+            if (window.audioController.isListening) {
+                if (window.audioController.mode === 'continuous_float') {
+                    const intensityPct = Math.round(window.audioController.getCurrentIntensity() * 100);
+                    meterLabel.innerText = intensityPct > 5 ? `FLOAT ${intensityPct}%` : 'Hum...';
+                } else {
+                    meterLabel.innerText = isTriggered ? 'VOICE!' : (pct > 0 ? `${pct}%` : 'Listening');
                 }
             } else {
-                // IDLE
-                hudVoiceStatus.className = 'hud-voice-status';
-                if (hudStatusIcon) hudStatusIcon.innerText = '🎙️';
-                if (hudStatusText) hudStatusText.innerText = 'Listening...';
-                if (hudStatusTag) hudStatusTag.innerText = 'READY';
+                meterLabel.innerText = 'Ready';
+            }
 
-                if (voiceTestFeedback && wizardModal.classList.contains('active')) {
-                    voiceTestFeedback.innerText = '🟢 Bird Ready (Speak to test)';
+            // Wizard Live Voice Test Bar
+            if (voiceTestFill && wizardModal.classList.contains('active')) {
+                const displayPct = Math.min(100, Math.max(0, Math.round((rawVol || vol) * 100)));
+                voiceTestFill.style.width = displayPct + '%';
+
+                if (displayPct >= Math.round(threshold * 100)) {
+                    voiceTestFeedback.innerText = `🎉 Voice Spike! (${displayPct}%)`;
+                    voiceTestFeedback.style.color = '#ff5c8a';
+                    voiceTestFill.style.background = 'linear-gradient(90deg, #ffbe0b, #ff006e)';
+                } else if (displayPct > 4) {
+                    voiceTestFeedback.innerText = `🎙️ Vocal Sound: ${displayPct}%`;
+                    voiceTestFeedback.style.color = '#4cc9f0';
+                    voiceTestFill.style.background = 'linear-gradient(90deg, #4cc9f0, #ff6b8b)';
+                } else if (window.audioController.isListening) {
+                    voiceTestFeedback.innerText = '👂 Listening... Say "Hop!" or Hum';
                     voiceTestFeedback.style.color = '#4CAF50';
                 }
             }
         };
 
-        // Real-Time Developer Diagnostics HUD Callback
-        window.audioController.onDiagnosticsUpdate = (diag) => {
-            if (!devOverlay || devOverlay.style.display === 'none') return;
-
-            if (diagMicStatus) {
-                diagMicStatus.innerText = window.audioController.isListening ? 'CONNECTED' : 'DISCONNECTED';
-                diagMicStatus.style.background = window.audioController.isListening ? 'rgba(76, 175, 80, 0.2)' : 'rgba(239, 68, 68, 0.2)';
-                diagMicStatus.style.borderColor = window.audioController.isListening ? '#4CAF50' : '#ef4444';
-                diagMicStatus.style.color = window.audioController.isListening ? '#4CAF50' : '#ef4444';
-            }
-            if (diagLevelBar) {
-                const pct = Math.min(100, Math.round(diag.currentLevel * 100 * 3));
-                diagLevelBar.style.width = pct + '%';
-            }
-            if (diagLevelVal) {
-                diagLevelVal.innerText = diag.currentLevel.toFixed(3);
-            }
-            if (diagFloorVal) {
-                diagFloorVal.innerText = diag.noiseFloor.toFixed(3);
-            }
-            if (diagThresholdVal) {
-                diagThresholdVal.innerText = diag.triggerThreshold.toFixed(3);
-            }
-            if (diagDeltaVal) {
-                diagDeltaVal.innerText = (diag.soundDelta >= 0 ? '+' : '') + diag.soundDelta.toFixed(3);
-                diagDeltaVal.style.color = diag.isTriggered ? '#4CAF50' : '#4cc9f0';
-            }
-            if (diagDetectedBadge) {
-                diagDetectedBadge.innerText = diag.isTriggered ? 'YES' : 'NO';
-                diagDetectedBadge.className = 'diag-val-badge ' + (diag.isTriggered ? 'confirmed' : '');
-            }
-            if (diagBirdState) {
-                diagBirdState.innerText = diag.state;
-                diagBirdState.style.color = diag.state === 'ACTIVE' ? '#ff5c8a' : '#94a3b8';
-            }
-            if (diagEventsCount) {
-                diagEventsCount.innerText = diag.totalEvents.toString();
-            }
-        };
-
         window.audioController.onError = (err) => {
-            if (hudStatusText) hudStatusText.innerText = 'Mic Off';
-            if (hudStatusTag) hudStatusTag.innerText = 'OFF';
+            meterLabel.innerText = 'Mic Off';
+            updateMicStatusCard(false);
         };
 
         function setGameMode(mode) {
@@ -886,9 +1010,11 @@
                 if (mode === 'vocal_flap') {
                     cardModeFlap.classList.add('active');
                     cardModeFloat.classList.remove('active');
+                    meterLabel.innerText = 'Vocal Flap';
                 } else {
                     cardModeFloat.classList.add('active');
                     cardModeFlap.classList.remove('active');
+                    meterLabel.innerText = 'Hum to Float';
                 }
             }
         }
@@ -908,8 +1034,8 @@
         function onFullscreenChange() {
             const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
             document.body.classList.toggle('fullscreen-active', isFull);
-            if (btnHudFullscreen) btnHudFullscreen.innerText = isFull ? '🗗' : '⛶';
-            if (btnStartFullscreen) btnStartFullscreen.querySelector('span').innerText = isFull ? '🗗 Exit Fullscreen' : '⛶ Fullscreen';
+            if (btnHudFullscreen) btnHudFullscreen.innerText = isFull ? '≡ƒùù' : 'Γ¢╢';
+            if (btnStartFullscreen) btnStartFullscreen.querySelector('span').innerText = isFull ? '≡ƒùù Exit Fullscreen' : 'Γ¢╢ Fullscreen';
         }
 
         document.addEventListener('fullscreenchange', onFullscreenChange);
@@ -962,12 +1088,13 @@
         // Viewport Touch / Pointer Controls
         const viewport = document.getElementById('viewport');
         viewport.addEventListener('pointerdown', (e) => {
+            // Never start game from generic clicks on UI buttons, cards or backdrop
             if (e.target.closest('button') || 
                 e.target.closest('.mode-card') || 
                 e.target.closest('.skin-chip') || 
+                e.target.closest('.preset-chip') || 
                 e.target.closest('.modal-backdrop') || 
-                e.target.closest('.hud-voice-status') ||
-                e.target.closest('.dev-diagnostics-overlay') ||
+                e.target.closest('.hud-mic-meter') ||
                 e.target.closest('.hud-actions-group')) {
                 return;
             }
@@ -999,10 +1126,6 @@
 
         // Keyboard Controls (Laptop / Desktop)
         window.addEventListener('keydown', (e) => {
-            if ((e.code === 'KeyD' && e.shiftKey) || (e.code === 'KeyD' && !wizardModal.classList.contains('active') && engine.state !== 'PLAYING')) {
-                toggleDevOverlay();
-                return;
-            }
             if (e.code === 'KeyF') {
                 toggleFullscreen();
                 return;
@@ -1019,15 +1142,9 @@
                 }
                 return;
             }
-            if (e.code === 'Escape') {
-                if (devOverlay && devOverlay.style.display !== 'none') {
-                    devOverlay.style.display = 'none';
-                    return;
-                }
-                if (wizardModal.classList.contains('active')) {
-                    closeWizard();
-                    return;
-                }
+            if (e.code === 'Escape' && wizardModal.classList.contains('active')) {
+                closeWizard();
+                return;
             }
             if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter') {
                 if (wizardModal.classList.contains('active')) return;
@@ -1059,8 +1176,8 @@
         function toggleSound() {
             isMuted = !isMuted;
             if (window.sfx) window.sfx.enabled = !isMuted;
-            if (btnHudSound) btnHudSound.innerText = isMuted ? '🔇' : '🔊';
-            if (btnStartSoundLabel) btnStartSoundLabel.innerText = isMuted ? '🔇 Sound Off' : '🔊 Sound On';
+            if (btnHudSound) btnHudSound.innerText = isMuted ? '≡ƒöç' : '≡ƒöè';
+            if (btnStartSoundLabel) btnStartSoundLabel.innerText = isMuted ? '≡ƒöç Sound Off' : '≡ƒöè Sound On';
         }
         if (btnHudSound) {
             btnHudSound.addEventListener('click', (e) => {
@@ -1079,7 +1196,7 @@
             btnStartSound.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
-        // Skin Selectors in Wizard Step 2
+        // Skin Selectors in Wizard Step 3
         const allSkinChips = document.querySelectorAll('.skin-chip');
         const wizardSkinBody = document.getElementById('wizard-skin-body');
         const wizardSkinWing = document.getElementById('wizard-skin-wing');

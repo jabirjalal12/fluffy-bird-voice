@@ -1,6 +1,6 @@
 /**
  * AudioController - High Precision Voice Intensity & Speech Trigger Handler
- * Dual-engine Web Audio analyzer using Time-Domain Peak Deviation, Float RMS, and Vocal Spectrum Energy.
+ * Multi-harmonic analyzer combining Time-Domain Peak Deviation, Float RMS, and Vocal Spectrum Energy.
  */
 class AudioController {
     constructor() {
@@ -17,8 +17,8 @@ class AudioController {
 
         // Settings (Optimized for instant, effortless speech reactivity)
         this.mode = 'vocal_flap'; // 'vocal_flap' or 'continuous_float'
-        this.sensitivity = 1.20;
-        this.threshold = 0.10;    // Balanced speech trigger threshold (10%)
+        this.sensitivity = 1.25;
+        this.threshold = 0.08;    // Balanced speech trigger threshold (8%)
         this.ambientNoise = 0.015; // Adaptive background noise floor tracker
 
         // Runtime state
@@ -72,7 +72,7 @@ class AudioController {
             this.microphone = this.audioCtx.createMediaStreamSource(stream);
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 512;
-            this.analyser.smoothingTimeConstant = 0.15;
+            this.analyser.smoothingTimeConstant = 0.12;
 
             this.microphone.connect(this.analyser);
             this.timeArray = new Uint8Array(this.analyser.fftSize);
@@ -117,13 +117,16 @@ class AudioController {
     }
 
     analyzeAudio() {
-        if (!this.analyser || !this.timeArray) return;
+        if (!this.analyser) return;
+
+        if (!this.timeArray) this.timeArray = new Uint8Array(this.analyser.fftSize);
+        if (!this.freqArray) this.freqArray = new Uint8Array(this.analyser.frequencyBinCount);
+        if (!this.floatArray) this.floatArray = new Float32Array(this.analyser.fftSize);
 
         // 1. Time-Domain Peak Sample Deviation & RMS
         this.analyser.getByteTimeDomainData(this.timeArray);
-        if (this.floatArray) {
-            this.analyser.getFloatTimeDomainData(this.floatArray);
-        }
+        this.analyser.getFloatTimeDomainData(this.floatArray);
+        this.analyser.getByteFrequencyData(this.freqArray);
 
         let maxDev = 0;
         let sumSquares = 0;
@@ -137,53 +140,51 @@ class AudioController {
         this.rawPeak = maxDev;
 
         // 2. Frequency-Domain Vocal Energy (100Hz - 4000Hz)
-        let voiceFreqAvg = 0;
-        if (this.freqArray) {
-            this.analyser.getByteFrequencyData(this.freqArray);
-            let freqSum = 0;
-            const startBin = 1;
-            const endBin = Math.min(64, this.freqArray.length);
-            for (let i = startBin; i < endBin; i++) {
-                freqSum += this.freqArray[i];
-            }
-            voiceFreqAvg = (freqSum / ((endBin - startBin) * 255));
+        let freqSum = 0;
+        const startBin = 1;
+        const endBin = Math.min(64, this.freqArray.length);
+        for (let i = startBin; i < endBin; i++) {
+            freqSum += this.freqArray[i];
         }
+        const voiceFreqAvg = (freqSum / ((endBin - startBin) * 255));
 
-        // 3. Dynamic Baseline Tracking (Adapts gently to room noise)
-        if (timeRms < this.ambientNoise * 1.4 || this.ambientNoise === 0) {
-            this.ambientNoise = this.ambientNoise * 0.96 + timeRms * 0.04;
+        // 3. Combined Vocal Energy Score (Instantaneous & Multi-harmonic)
+        const peakScore = Math.max(0, maxDev - this.ambientNoise * 0.6);
+        const rmsScore = Math.max(0, timeRms - this.ambientNoise * 0.4);
+        const freqScore = Math.max(0, voiceFreqAvg - this.ambientNoise * 0.25);
+
+        const vocalSignal = (peakScore * 0.70) + (rmsScore * 1.60) + (freqScore * 1.30);
+        let rawVol = Math.min(1.0, Math.max(0, vocalSignal * this.sensitivity));
+
+        // Dynamic Baseline Tracking (Very slow filter so speech doesn't pull up noise floor)
+        if (rawVol < this.ambientNoise * 1.3 || this.ambientNoise === 0) {
+            this.ambientNoise = this.ambientNoise * 0.98 + rawVol * 0.02;
         }
-
-        // 4. Combined Vocal Energy Score (Instantaneous & Multi-harmonic)
-        const peakScore = Math.max(0, maxDev - this.ambientNoise * 0.8);
-        const rmsScore = Math.max(0, timeRms - this.ambientNoise * 0.5);
-        const freqScore = Math.max(0, voiceFreqAvg - this.ambientNoise * 0.3);
-
-        const vocalSignal = (peakScore * 0.65) + (rmsScore * 1.80) + (freqScore * 1.25);
-        let rawVol = Math.min(1.0, vocalSignal * this.sensitivity);
 
         // Smoothing for UI & Flight Physics
-        const currentSmoothing = this.mode === 'continuous_float' ? 0.30 : 0.40;
+        const currentSmoothing = this.mode === 'continuous_float' ? 0.25 : 0.35;
         this.smoothedVolume = (this.smoothedVolume * currentSmoothing) + (rawVol * (1 - currentSmoothing));
         this.currentVolume = rawVol;
 
         const now = performance.now();
 
-        // 5. Speech Spike Trigger (Vocal Flap Mode)
+        // 4. Speech Spike Trigger (Vocal Flap Mode)
         if (this.mode === 'vocal_flap') {
             const effectiveVol = Math.max(this.smoothedVolume, rawVol);
+            const timeSinceLastFlap = now - this.lastFlapTime;
+
+            // Auto-unlock burst lock after cooldown expires or volume drops below threshold * 0.85
+            if (timeSinceLastFlap > this.flapCooldownMs * 1.4 || effectiveVol < this.threshold * 0.85) {
+                this.hasTriggeredInCurrentBurst = false;
+            }
+
             if (effectiveVol >= this.threshold) {
-                if (!this.hasTriggeredInCurrentBurst && (now - this.lastFlapTime > this.flapCooldownMs)) {
+                if (!this.hasTriggeredInCurrentBurst && timeSinceLastFlap > this.flapCooldownMs) {
                     this.lastFlapTime = now;
                     this.hasTriggeredInCurrentBurst = true;
                     if (this.onFlap) {
                         this.onFlap(effectiveVol);
                     }
-                }
-            } else {
-                // Reset trigger lock once sound drops below 60% of threshold
-                if (effectiveVol < this.threshold * 0.60) {
-                    this.hasTriggeredInCurrentBurst = false;
                 }
             }
         }
@@ -191,7 +192,7 @@ class AudioController {
 
     getCurrentIntensity() {
         if (!this.isListening) return 0;
-        if (this.smoothedVolume < 0.02) return 0;
+        if (this.smoothedVolume < 0.015) return 0;
         
         // Responsive lift curve for continuous humming/singing
         const targetRef = Math.max(0.04, this.threshold);
@@ -231,10 +232,10 @@ class AudioController {
                     this.isCalibrating = false;
 
                     const avg = samples.reduce((a, b) => a + b, 0) / (samples.length || 1);
-                    const max = Math.max(...samples, 0.005);
+                    const max = Math.max(...samples, 0.003);
 
-                    this.ambientNoise = Math.min(0.04, Math.max(0.003, avg));
-                    this.threshold = Math.min(0.22, Math.max(0.06, max * 1.8 + 0.03));
+                    this.ambientNoise = Math.min(0.035, Math.max(0.002, avg));
+                    this.threshold = Math.min(0.20, Math.max(0.05, max * 1.6 + 0.02));
 
                     resolve({
                         avgAmbient: avg,
@@ -249,15 +250,15 @@ class AudioController {
 
     setSensitivityPreset(preset) {
         if (preset === 'quiet') {
-            this.sensitivity = 1.40;
-            this.threshold = 0.06;
+            this.sensitivity = 1.45;
+            this.threshold = 0.05;
         } else if (preset === 'noisy') {
-            this.sensitivity = 0.90;
-            this.threshold = 0.18;
+            this.sensitivity = 0.95;
+            this.threshold = 0.15;
         } else {
             // 'normal' (balanced)
-            this.sensitivity = 1.20;
-            this.threshold = 0.10;
+            this.sensitivity = 1.25;
+            this.threshold = 0.08;
         }
     }
 

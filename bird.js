@@ -77,7 +77,7 @@ class FluffyBird {
         this.radius = 22;
         this.angle = 0;
         this.wingAngle = 0;
-        this.flapPower = 5.0; // Lower gentle jump level
+        this.flapPower = 5.6; // Responsive, crisp jump impulse
         this.scaleX = 1;
         this.scaleY = 1;
 
@@ -91,7 +91,7 @@ class FluffyBird {
     }
 
     setFlapPower(power) {
-        this.flapPower = Math.max(2.5, Math.min(8.0, parseFloat(power)));
+        this.flapPower = Math.max(3.0, Math.min(8.0, parseFloat(power)));
     }
 
     setSkin(skinKey) {
@@ -220,7 +220,10 @@ class FluffyBird {
         }
     }
 
-    renderFeathers(ctx) {
+    render(ctx) {
+        const skin = this.skins[this.currentSkin];
+
+        // 1. Render flying feathers in world space
         for (const f of this.feathers) {
             ctx.save();
             ctx.globalAlpha = f.alpha;
@@ -228,152 +231,155 @@ class FluffyBird {
             ctx.rotate(f.rot);
             ctx.fillStyle = f.color;
             ctx.beginPath();
-            ctx.ellipse(0, 0, f.size * 1.2, f.size * 0.7, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, f.size, f.size * 0.5, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
-    }
 
-    render(ctx) {
-        this.renderFeathers(ctx);
-
-        const skin = this.skins[this.currentSkin];
+        // 2. Render Bird with scale, position, rotation
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.angle);
         ctx.scale(this.scaleX, this.scaleY);
 
-        const r = this.radius;
+        // Soft Outer Glow / Fluff Aura
+        const auraGrad = ctx.createRadialGradient(0, 0, this.radius * 0.6, 0, 0, this.radius * 1.35);
+        auraGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        auraGrad.addColorStop(1, 'rgba(255, 255, 255, 0.25)');
+        ctx.fillStyle = auraGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius * 1.35, 0, Math.PI * 2);
+        ctx.fill();
 
-        // 1. Fluffy tail tufts (behind body)
-        ctx.fillStyle = skin.wingEdge;
-        [-6, 0, 6].forEach((offset, idx) => {
-            ctx.beginPath();
-            ctx.ellipse(-r * 0.9, offset, r * 0.35, r * 0.2, (idx - 1) * 0.25, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // 2. Main Fluffy Body with soft gradient
-        const bodyGrad = ctx.createRadialGradient(-3, -3, r * 0.2, 0, 0, r);
+        // Fluffy Body (Multi-radial gradient with 3D spherical lighting)
+        const bodyGrad = ctx.createRadialGradient(
+            -this.radius * 0.35,
+            -this.radius * 0.35,
+            this.radius * 0.15,
+            0,
+            0,
+            this.radius
+        );
         bodyGrad.addColorStop(0, skin.body);
+        bodyGrad.addColorStop(0.7, skin.body);
         bodyGrad.addColorStop(1, skin.bodyGradient);
 
         ctx.fillStyle = bodyGrad;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 4;
         ctx.beginPath();
-        // Base round body
-        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+
+        // Fluffy Belly Highlight
+        const bellyGrad = ctx.createRadialGradient(
+            this.radius * 0.25,
+            this.radius * 0.35,
+            2,
+            this.radius * 0.2,
+            this.radius * 0.3,
+            this.radius * 0.65
+        );
+        bellyGrad.addColorStop(0, skin.belly);
+        bellyGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = bellyGrad;
+        ctx.beginPath();
+        ctx.arc(this.radius * 0.2, this.radius * 0.25, this.radius * 0.55, 0, Math.PI * 2);
         ctx.fill();
 
-        // 3. Cute Fluffy edge puffs around perimeter for extra fluffiness
-        ctx.fillStyle = skin.body;
-        const puffCount = 8;
-        for (let i = 0; i < puffCount; i++) {
-            const th = (i / puffCount) * Math.PI * 2;
-            const px = Math.cos(th) * (r * 0.85);
-            const py = Math.sin(th) * (r * 0.85);
-            ctx.beginPath();
-            ctx.arc(px, py, r * 0.3, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        // 4. Soft Belly
-        ctx.fillStyle = skin.belly;
-        ctx.beginPath();
-        ctx.ellipse(r * 0.2, r * 0.28, r * 0.55, r * 0.42, 0.15, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 5. Blushing Cheeks
+        // Rosy Cheeks (Blush)
         ctx.fillStyle = skin.blush;
         ctx.beginPath();
-        ctx.ellipse(r * 0.42, r * 0.18, r * 0.32, r * 0.22, 0, 0, Math.PI * 2);
+        ctx.ellipse(this.radius * 0.45, this.radius * 0.25, 5, 3.5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 6. Eye (Big anime/cute eye with glossy reflections)
-        const eyeX = r * 0.45;
-        const eyeY = -r * 0.22;
-        const eyeR = r * 0.32;
+        // Beak (Vibrant orange with 3D highlight)
+        ctx.fillStyle = skin.beak;
+        ctx.beginPath();
+        ctx.moveTo(this.radius * 0.7, -2);
+        ctx.lineTo(this.radius * 1.35, 3);
+        ctx.lineTo(this.radius * 0.7, 8);
+        ctx.closePath();
+        ctx.fill();
 
-        if (this.isDead) {
-            // X_X dizzy eyes
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            // Left cross
-            ctx.beginPath();
-            ctx.moveTo(eyeX - 5, eyeY - 5);
-            ctx.lineTo(eyeX + 5, eyeY + 5);
-            ctx.moveTo(eyeX + 5, eyeY - 5);
-            ctx.lineTo(eyeX - 5, eyeY + 5);
-            ctx.stroke();
-        } else if (this.isBlinking) {
-            // Closed happy arc
+        // Beak shine
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.beginPath();
+        ctx.moveTo(this.radius * 0.75, 0);
+        ctx.lineTo(this.radius * 1.1, 3);
+        ctx.lineTo(this.radius * 0.75, 3);
+        ctx.closePath();
+        ctx.fill();
+
+        // Big Anime Eye
+        const eyeX = this.radius * 0.4;
+        const eyeY = -this.radius * 0.2;
+        const eyeR = 6.5;
+
+        if (this.isBlinking) {
+            // Closed eye arc
             ctx.strokeStyle = '#222';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2.5;
             ctx.lineCap = 'round';
             ctx.beginPath();
-            ctx.arc(eyeX, eyeY + 2, eyeR * 0.8, Math.PI * 1.1, Math.PI * 1.9);
+            ctx.arc(eyeX, eyeY + 1, eyeR * 0.8, 0.2 * Math.PI, 0.8 * Math.PI);
             ctx.stroke();
         } else {
             // White sclera
             ctx.fillStyle = '#FFFFFF';
             ctx.beginPath();
-            ctx.ellipse(eyeX, eyeY, eyeR, eyeR * 1.1, 0, 0, Math.PI * 2);
+            ctx.arc(eyeX, eyeY, eyeR, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
 
-            // Pupil / Iris
+            // Pupil
             ctx.fillStyle = '#1D1E2C';
             ctx.beginPath();
-            ctx.arc(eyeX + 2, eyeY, eyeR * 0.65, 0, Math.PI * 2);
+            ctx.arc(eyeX + 1.2, eyeY, eyeR * 0.65, 0, Math.PI * 2);
             ctx.fill();
 
-            // Sparkle Highlights
+            // Large sparkle reflection
             ctx.fillStyle = '#FFFFFF';
             ctx.beginPath();
-            ctx.arc(eyeX + 3.5, eyeY - 2.5, eyeR * 0.3, 0, Math.PI * 2);
+            ctx.arc(eyeX + 2.2, eyeY - 2, 2.2, 0, Math.PI * 2);
             ctx.fill();
 
+            // Small secondary sparkle
             ctx.beginPath();
-            ctx.arc(eyeX, eyeY + 3.5, eyeR * 0.15, 0, Math.PI * 2);
+            ctx.arc(eyeX - 0.5, eyeY + 1.8, 1.1, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // 7. Cute Beak
-        ctx.fillStyle = skin.beak;
-        ctx.beginPath();
-        ctx.moveTo(r * 0.82, -r * 0.12);
-        ctx.quadraticCurveTo(r * 1.35, -r * 0.02, r * 1.42, 0.05);
-        ctx.quadraticCurveTo(r * 1.1, r * 0.25, r * 0.78, r * 0.2);
-        ctx.closePath();
-        ctx.fill();
-
-        // 8. Flapping Wing
+        // Flapping Wing with animated rotation
         ctx.save();
-        ctx.translate(-r * 0.15, 0);
+        ctx.translate(-this.radius * 0.35, this.radius * 0.05);
         ctx.rotate(this.wingAngle);
 
-        const wingGrad = ctx.createLinearGradient(0, 0, r * 0.8, r * 0.5);
+        const wingGrad = ctx.createLinearGradient(-14, 0, 14, 10);
         wingGrad.addColorStop(0, skin.wing);
         wingGrad.addColorStop(1, skin.wingEdge);
-
         ctx.fillStyle = wingGrad;
+
         ctx.beginPath();
-        ctx.ellipse(0, 0, r * 0.65, r * 0.4, 0.3, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 14, 9, -0.3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Wing inner feather details
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        // Wing feather lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.ellipse(-2, -1, r * 0.4, r * 0.22, 0.3, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.arc(2, 0, 8, -0.6, 0.6);
+        ctx.stroke();
+
         ctx.restore();
 
-        // 9. Tiny Crown / Fluff Tuft on top of head
-        ctx.fillStyle = skin.wingEdge;
+        // Little Head Tuft / Feather Crest
+        ctx.fillStyle = skin.wing;
         ctx.beginPath();
-        ctx.ellipse(-r * 0.1, -r * 0.95, r * 0.22, r * 0.35, -0.2, 0, Math.PI * 2);
+        ctx.moveTo(-4, -this.radius * 0.85);
+        ctx.quadraticCurveTo(-8, -this.radius * 1.35, -2, -this.radius * 1.3);
+        ctx.quadraticCurveTo(2, -this.radius * 1.1, 2, -this.radius * 0.85);
         ctx.fill();
 
         ctx.restore();

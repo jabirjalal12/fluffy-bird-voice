@@ -54,6 +54,7 @@ class GameEngine {
         this.groundHeight = 64;
 
         this.lastTime = performance.now();
+        window.engine = this;
         this.initClouds();
         this.setupAudioListeners();
         this.updateStatsUI();

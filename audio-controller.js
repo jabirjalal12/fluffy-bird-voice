@@ -1,6 +1,6 @@
 /**
  * AudioController - High Precision Voice Intensity & Speech Trigger Handler
- * Multi-harmonic analyzer combining Time-Domain Peak Deviation, Float RMS, and Vocal Spectrum Energy.
+ * Multi-harmonic analyzer tuned for clean, intentional speech commands with filtered ambient noise.
  */
 class AudioController {
     constructor() {
@@ -15,11 +15,11 @@ class AudioController {
         this.isCalibrating = false;
         this._loopRunning = false;
 
-        // Settings (Optimized for instant, effortless speech reactivity)
+        // Settings (Less sensitive, requiring intentional spoken sound like "Hop!" or "Jump!")
         this.mode = 'vocal_flap'; // 'vocal_flap' or 'continuous_float'
-        this.sensitivity = 1.25;
-        this.threshold = 0.08;    // Balanced speech trigger threshold (8%)
-        this.ambientNoise = 0.015; // Adaptive background noise floor tracker
+        this.sensitivity = 0.90;
+        this.threshold = 0.15;    // Clean vocal trigger threshold (15%)
+        this.ambientNoise = 0.02; // Adaptive background noise floor tracker
 
         // Runtime state
         this.currentVolume = 0;
@@ -27,7 +27,7 @@ class AudioController {
         this.rawRms = 0;
         this.rawPeak = 0;
         this.lastFlapTime = 0;
-        this.flapCooldownMs = 140; // Snappy 140ms cooldown for rapid flaps
+        this.flapCooldownMs = 150; // Snappy 150ms cooldown for rapid flaps
         this.hasTriggeredInCurrentBurst = false;
 
         // Callbacks
@@ -72,7 +72,7 @@ class AudioController {
             this.microphone = this.audioCtx.createMediaStreamSource(stream);
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 512;
-            this.analyser.smoothingTimeConstant = 0.12;
+            this.analyser.smoothingTimeConstant = 0.15;
 
             this.microphone.connect(this.analyser);
             this.timeArray = new Uint8Array(this.analyser.fftSize);
@@ -107,7 +107,7 @@ class AudioController {
                 if (this.onLevelUpdate) {
                     const isTriggered = this.mode === 'vocal_flap' 
                         ? (this.smoothedVolume >= this.threshold || this.currentVolume >= this.threshold)
-                        : this.smoothedVolume > 0.03;
+                        : this.smoothedVolume > 0.04;
                     this.onLevelUpdate(this.smoothedVolume, this.threshold, isTriggered, this.currentVolume, this.rawRms);
                 }
             }
@@ -148,12 +148,12 @@ class AudioController {
         }
         const voiceFreqAvg = (freqSum / ((endBin - startBin) * 255));
 
-        // 3. Combined Vocal Energy Score (Instantaneous & Multi-harmonic)
-        const peakScore = Math.max(0, maxDev - this.ambientNoise * 0.6);
-        const rmsScore = Math.max(0, timeRms - this.ambientNoise * 0.4);
-        const freqScore = Math.max(0, voiceFreqAvg - this.ambientNoise * 0.25);
+        // 3. Combined Clean Vocal Score with Ambient Floor Rejection
+        const peakScore = Math.max(0, maxDev - this.ambientNoise * 0.9);
+        const rmsScore = Math.max(0, timeRms - this.ambientNoise * 0.6);
+        const freqScore = Math.max(0, voiceFreqAvg - this.ambientNoise * 0.4);
 
-        const vocalSignal = (peakScore * 0.70) + (rmsScore * 1.60) + (freqScore * 1.30);
+        const vocalSignal = (peakScore * 0.60) + (rmsScore * 1.40) + (freqScore * 1.10);
         let rawVol = Math.min(1.0, Math.max(0, vocalSignal * this.sensitivity));
 
         // Dynamic Baseline Tracking (Very slow filter so speech doesn't pull up noise floor)
@@ -162,7 +162,7 @@ class AudioController {
         }
 
         // Smoothing for UI & Flight Physics
-        const currentSmoothing = this.mode === 'continuous_float' ? 0.25 : 0.35;
+        const currentSmoothing = this.mode === 'continuous_float' ? 0.30 : 0.40;
         this.smoothedVolume = (this.smoothedVolume * currentSmoothing) + (rawVol * (1 - currentSmoothing));
         this.currentVolume = rawVol;
 
@@ -173,8 +173,8 @@ class AudioController {
             const effectiveVol = Math.max(this.smoothedVolume, rawVol);
             const timeSinceLastFlap = now - this.lastFlapTime;
 
-            // Auto-unlock burst lock after cooldown expires or volume drops below threshold * 0.85
-            if (timeSinceLastFlap > this.flapCooldownMs * 1.4 || effectiveVol < this.threshold * 0.85) {
+            // Auto-unlock burst lock after cooldown expires or volume drops below threshold * 0.80
+            if (timeSinceLastFlap > this.flapCooldownMs * 1.4 || effectiveVol < this.threshold * 0.80) {
                 this.hasTriggeredInCurrentBurst = false;
             }
 
@@ -192,12 +192,12 @@ class AudioController {
 
     getCurrentIntensity() {
         if (!this.isListening) return 0;
-        if (this.smoothedVolume < 0.015) return 0;
+        if (this.smoothedVolume < 0.03) return 0;
         
         // Responsive lift curve for continuous humming/singing
-        const targetRef = Math.max(0.04, this.threshold);
-        const norm = Math.min(1.0, this.smoothedVolume / (targetRef * 1.2));
-        return Math.pow(norm, 0.60);
+        const targetRef = Math.max(0.08, this.threshold);
+        const norm = Math.min(1.0, this.smoothedVolume / (targetRef * 1.1));
+        return Math.pow(norm, 0.70);
     }
 
     async autoCalibrate(durationMs = 2000, progressCallback = null) {
@@ -232,10 +232,10 @@ class AudioController {
                     this.isCalibrating = false;
 
                     const avg = samples.reduce((a, b) => a + b, 0) / (samples.length || 1);
-                    const max = Math.max(...samples, 0.003);
+                    const max = Math.max(...samples, 0.005);
 
-                    this.ambientNoise = Math.min(0.035, Math.max(0.002, avg));
-                    this.threshold = Math.min(0.20, Math.max(0.05, max * 1.6 + 0.02));
+                    this.ambientNoise = Math.min(0.04, Math.max(0.005, avg));
+                    this.threshold = Math.min(0.28, Math.max(0.10, max * 2.0 + 0.04));
 
                     resolve({
                         avgAmbient: avg,
@@ -250,15 +250,15 @@ class AudioController {
 
     setSensitivityPreset(preset) {
         if (preset === 'quiet') {
-            this.sensitivity = 1.45;
-            this.threshold = 0.05;
+            this.sensitivity = 1.10;
+            this.threshold = 0.10; // 10%
         } else if (preset === 'noisy') {
-            this.sensitivity = 0.95;
-            this.threshold = 0.15;
+            this.sensitivity = 0.70;
+            this.threshold = 0.22; // 22%
         } else {
-            // 'normal' (balanced)
-            this.sensitivity = 1.25;
-            this.threshold = 0.08;
+            // 'normal' (balanced, less sensitive, requires clear spoken sound)
+            this.sensitivity = 0.90;
+            this.threshold = 0.15; // 15%
         }
     }
 

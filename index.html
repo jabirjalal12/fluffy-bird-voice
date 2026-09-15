@@ -17,11 +17,11 @@
         <canvas id="game-canvas"></canvas>
 
         <!-- Top Live Audio Meter -->
-        <div class="hud-mic-meter" id="hud-mic-meter" title="Click to Enable / Test Mic">
+        <div class="hud-mic-meter" id="hud-mic-meter" title="Click to Test / Calibrate Mic">
             <span class="mic-icon-pulse" id="mic-icon">🎙️</span>
             <div class="meter-track" id="meter-track">
                 <div class="meter-fill" id="meter-fill"></div>
-                <div class="meter-threshold-line" id="meter-threshold-line" style="left: 14%;"></div>
+                <div class="meter-threshold-line" id="meter-threshold-line" style="left: 12%;"></div>
             </div>
             <span class="meter-label" id="meter-label">Ready</span>
         </div>
@@ -37,6 +37,7 @@
                 <span id="speed-text">1.0x</span>
             </div>
             <div class="hud-actions-group">
+                <button class="btn-secondary btn-icon-only" id="btn-hud-settings" title="Settings & Calibration (S)">⚙️</button>
                 <button class="btn-secondary btn-icon-only" id="btn-hud-fullscreen" title="Toggle Fullscreen (F)">⛶</button>
                 <button class="btn-secondary btn-icon-only" id="btn-hud-sound" title="Toggle Sound (M)">🔊</button>
             </div>
@@ -66,6 +67,12 @@
             </button>
 
             <div class="menu-sub-actions">
+                <button class="btn-secondary btn-settings-trigger" id="btn-start-settings">
+                    <span>⚙️ Voice & Mode Settings</span>
+                </button>
+            </div>
+
+            <div class="menu-sub-actions" style="margin-top: 6px;">
                 <button class="btn-secondary" id="btn-start-fullscreen">
                     <span>⛶ Fullscreen</span>
                 </button>
@@ -105,177 +112,240 @@
                     <span style="font-weight: 700; color: #555;" id="final-time">0s</span>
                 </div>
 
-                <button class="btn-primary" id="btn-restart-game" style="width: 100%; justify-content: center; margin-top: 16px;">
-                    <span>🔄</span>
-                    <span>PLAY AGAIN</span>
-                </button>
+                <div style="display: flex; gap: 8px; margin-top: 14px;">
+                    <button class="btn-secondary" id="btn-gameover-settings" style="flex: 1; justify-content: center;">
+                        <span>⚙️ Settings</span>
+                    </button>
+                    <button class="btn-primary" id="btn-restart-game" style="flex: 2; justify-content: center; margin: 0;">
+                        <span>🔄 PLAY AGAIN</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- ============================================== -->
-<!-- Interactive Onboarding & Setup Wizard Modal (First-time / Mic setup) -->
+<!-- Advanced 3-Step Setup & Settings Window Modal -->
 <!-- ============================================== -->
 <div class="modal-backdrop" id="wizard-modal">
-    <div class="wizard-box">
-        <!-- Progress Steps Indicator -->
-        <div class="wizard-progress-bar">
-            <div class="wizard-step-dot active" id="dot-step-1"><span>1</span> Mode</div>
-            <div class="wizard-step-line"></div>
-            <div class="wizard-step-dot" id="dot-step-2"><span>2</span> Mic & Audio</div>
-            <div class="wizard-step-line"></div>
-            <div class="wizard-step-dot" id="dot-step-3"><span>3</span> Ready!</div>
-        </div>
+    <div class="wizard-box-container">
+        <!-- Dynamic Glow Border Aura -->
+        <div class="wizard-glow-border"></div>
 
-        <!-- STEP 1: Flight Mode Selection -->
-        <div class="wizard-page active" id="wizard-page-1">
-            <div class="wizard-hero-anim">
-                <div class="wizard-bird-preview">🐥</div>
-            </div>
-            <h3 class="wizard-title">Welcome to Fluffy Bird!</h3>
-            <p class="wizard-subtitle">Choose how you want to control your flight:</p>
+        <div class="wizard-box">
+            <!-- Modal Close Button -->
+            <button class="modal-close-btn" id="btn-wizard-close" title="Close Settings">✕</button>
 
-            <div class="mode-card-grid">
-                <div class="mode-card active" id="card-mode-flap">
-                    <div class="mode-card-badge">RECOMMENDED</div>
-                    <div class="mode-card-icon">⚡🎙️</div>
-                    <h4 class="mode-card-title">Vocal Flap</h4>
-                    <p class="mode-card-desc">Say <strong>"Hop!"</strong>, <strong>"Jump!"</strong>, or <strong>"Ah!"</strong> to trigger flaps. Classic arcade rhythm.</p>
+            <!-- Progress Steps Indicator -->
+            <div class="wizard-progress-bar">
+                <div class="wizard-step-dot active" id="dot-step-1" data-step="1">
+                    <span class="step-num">1</span>
+                    <span class="step-label">Flight Mode</span>
                 </div>
-                <div class="mode-card" id="card-mode-float">
-                    <div class="mode-card-icon">🌊🐥</div>
-                    <h4 class="mode-card-title">Voice Float</h4>
-                    <p class="mode-card-desc">Hum, sing, or sustain voice to hover & climb. Louder voice floats higher!</p>
+                <div class="wizard-step-line" id="line-step-1"></div>
+                <div class="wizard-step-dot" id="dot-step-2" data-step="2">
+                    <span class="step-num">2</span>
+                    <span class="step-label">Voice Studio</span>
+                </div>
+                <div class="wizard-step-line" id="line-step-2"></div>
+                <div class="wizard-step-dot" id="dot-step-3" data-step="3">
+                    <span class="step-num">3</span>
+                    <span class="step-label">Character</span>
                 </div>
             </div>
 
-            <div class="wizard-nav-buttons">
-                <button class="btn-primary" id="btn-wizard-next-1" style="width: 100%; justify-content: center;">
-                    <span>Next: Setup Microphone</span>
-                    <span>➡️</span>
+            <!-- STEP 1: Flight Mode Selection -->
+            <div class="wizard-page active" id="wizard-page-1">
+                <div class="wizard-hero-anim">
+                    <div class="wizard-bird-preview" id="wizard-mode-bird">🐥</div>
+                    <div class="particle-sparkle" style="top: 0; left: 35%;">✨</div>
+                    <div class="particle-sparkle" style="bottom: 10px; right: 35%;">💫</div>
+                </div>
+                <h3 class="wizard-title">Select Flight Mode</h3>
+                <p class="wizard-subtitle">Choose how your voice commands the fluffy bird:</p>
+
+                <div class="mode-card-grid">
+                    <div class="mode-card active" id="card-mode-flap">
+                        <div class="mode-card-badge">CLASSIC ARCADE</div>
+                        <div class="mode-card-icon-wrapper">
+                            <span class="mode-card-icon">⚡🎙️</span>
+                        </div>
+                        <h4 class="mode-card-title">Vocal Flap</h4>
+                        <p class="mode-card-desc">Say <strong>"Hop!"</strong>, <strong>"Jump!"</strong>, or <strong>"Ah!"</strong> to flap upwards. Great for precision dodging!</p>
+                        <div class="mode-status-indicator">SELECTED</div>
+                    </div>
+                    <div class="mode-card" id="card-mode-float">
+                        <div class="mode-card-badge" style="background: #4cc9f0;">CONTINUOUS</div>
+                        <div class="mode-card-icon-wrapper">
+                            <span class="mode-card-icon">🌊🐥</span>
+                        </div>
+                        <h4 class="mode-card-title">Voice Float</h4>
+                        <p class="mode-card-desc">Hum, sing, or hold your voice to hover and climb. Louder hums float higher!</p>
+                        <div class="mode-status-indicator">SELECTED</div>
+                    </div>
+                </div>
+
+                <div class="wizard-nav-buttons">
+                    <button class="btn-primary" id="btn-wizard-next-1" style="width: 100%; justify-content: center;">
+                        <span>Next: Microphone & Voice Studio</span>
+                        <span>➡️</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Microphone Permission & Live Voice Studio Visualizer -->
+            <div class="wizard-page" id="wizard-page-2">
+                <h3 class="wizard-title">🎙️ Live Voice Studio</h3>
+                <p class="wizard-subtitle">Calibrate mic sensitivity and test your voice live:</p>
+
+                <div class="wizard-mic-status-card" id="wizard-mic-card">
+                    <div class="mic-status-indicator" id="wizard-mic-indicator">
+                        <span class="mic-status-icon" id="wizard-mic-icon">🎤</span>
+                        <span id="wizard-mic-text">Click below to activate microphone</span>
+                    </div>
+                    <button class="btn-primary btn-pulsate" id="btn-wizard-connect-mic" style="margin: 8px auto 2px auto; padding: 10px 22px; font-size: 14px;">
+                        <span>🎙️ Allow Microphone Access</span>
+                    </button>
+                </div>
+
+                <!-- Live Voice Sandbox: Mini Flight Previewer & Oscilloscope -->
+                <div class="voice-sandbox-card">
+                    <div class="sandbox-top-header">
+                        <div class="sandbox-title-pill">
+                            <span class="pulse-dot"></span>
+                            <span>Live Audio Visualizer & Simulator</span>
+                        </div>
+                        <span class="sandbox-feedback" id="voice-test-feedback">Awaiting mic...</span>
+                    </div>
+
+                    <!-- Dual Real-time Visualizer Canvas (Waveform + Frequency Spectrum) -->
+                    <div class="oscilloscope-container">
+                        <canvas id="voice-wave-canvas" width="380" height="70"></canvas>
+                        
+                        <!-- Mini Flight Simulator Bird reacting live to your voice! -->
+                        <div class="mini-flight-stage" id="mini-flight-stage">
+                            <div class="mini-bird-avatar" id="mini-bird-avatar">
+                                <div class="mini-bird-body"></div>
+                                <div class="mini-bird-wing" id="mini-bird-wing"></div>
+                                <div class="mini-bird-eye"></div>
+                                <div class="mini-bird-beak"></div>
+                            </div>
+                            <span class="mini-flight-label">Mini Flight Preview</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Volume Level Track & Trigger Threshold Needle -->
+                    <div class="voice-test-track">
+                        <div class="voice-test-fill" id="voice-test-fill"></div>
+                        <div class="voice-test-threshold" id="voice-test-threshold" style="left: 12%;" title="Trigger Threshold"></div>
+                    </div>
+                    <div class="voice-threshold-labels">
+                        <span>0% Silence</span>
+                        <span style="color: #ff5c8a; font-weight: 800;" id="voice-threshold-val">Trigger: 12%</span>
+                        <span>100% Loud</span>
+                    </div>
+                </div>
+
+                <!-- Sensitivity Presets Group -->
+                <div class="sensitivity-presets-group">
+                    <span class="preset-title">Room Acoustics Preset:</span>
+                    <div class="preset-chips-row">
+                        <button class="preset-chip" data-preset="quiet">🤫 Quiet Room</button>
+                        <button class="preset-chip active" data-preset="normal">🎙️ Normal (Balanced)</button>
+                        <button class="preset-chip" data-preset="noisy">📢 Noisy Room</button>
+                    </div>
+                </div>
+
+                <button class="btn-secondary btn-calibrate-shimmer" id="btn-wizard-calibrate" style="width: 100%; margin: 4px 0 12px 0;">
+                    <span>🎯 2-Second Ambient Auto-Calibrate</span>
                 </button>
-            </div>
-        </div>
 
-        <!-- STEP 2: Microphone Permission & Live Sensitivity -->
-        <div class="wizard-page" id="wizard-page-2">
-            <h3 class="wizard-title">🎙️ Microphone Setup</h3>
-            <p class="wizard-subtitle">Grant mic permission and test your voice volume:</p>
-
-            <div class="wizard-mic-status-card" id="wizard-mic-card">
-                <div class="mic-status-indicator" id="wizard-mic-indicator">
-                    <span id="wizard-mic-icon">🎤</span>
-                    <span id="wizard-mic-text">Click below to allow microphone access</span>
-                </div>
-                <button class="btn-primary btn-pulsate" id="btn-wizard-connect-mic" style="margin: 10px auto 4px auto; padding: 10px 24px; font-size: 15px;">
-                    <span>Grant Microphone Permission</span>
-                </button>
-            </div>
-
-            <!-- Live Voice Test Visualizer Box -->
-            <div class="voice-test-box">
-                <div class="voice-test-header">
-                    <span>Live Voice Test Bar</span>
-                    <span id="voice-test-feedback">Click 'Grant Microphone' above</span>
-                </div>
-                <div class="voice-test-track">
-                    <div class="voice-test-fill" id="voice-test-fill"></div>
-                    <div class="voice-test-threshold" style="left: 14%;"></div>
-                </div>
-
-                <!-- Animated Equalizer Waveform Bars -->
-                <div class="voice-eq-bars" id="voice-eq-bars">
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
+                <div class="wizard-nav-buttons split">
+                    <button class="btn-secondary" id="btn-wizard-back-2">
+                        <span>⬅️ Back</span>
+                    </button>
+                    <button class="btn-primary" id="btn-wizard-next-2">
+                        <span>Next: Pick Skin</span>
+                        <span>➡️</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Sensitivity Presets -->
-            <div class="sensitivity-presets-group">
-                <span class="preset-title">Room Sensitivity Preset:</span>
-                <div class="preset-chips-row">
-                    <button class="preset-chip" data-preset="quiet">🤫 Quiet Room</button>
-                    <button class="preset-chip active" data-preset="normal">🎙️ Normal (Balanced)</button>
-                    <button class="preset-chip" data-preset="noisy">📢 Noisy Room</button>
+            <!-- STEP 3: Character Pick & Launch -->
+            <div class="wizard-page" id="wizard-page-3">
+                <div class="skin-hero-display">
+                    <div class="skin-hero-avatar-wrapper" id="skin-hero-avatar">
+                        <div class="hero-fluffy-bird" id="wizard-skin-bird">
+                            <div class="hero-bird-body" id="wizard-skin-body"></div>
+                            <div class="hero-bird-wing" id="wizard-skin-wing"></div>
+                            <div class="hero-bird-eye"></div>
+                            <div class="hero-bird-beak"></div>
+                            <div class="hero-bird-blush"></div>
+                        </div>
+                    </div>
+                    <div class="skin-selected-name" id="skin-selected-name">Sunny Chick</div>
                 </div>
-            </div>
 
-            <button class="btn-secondary" id="btn-wizard-calibrate" style="width: 100%; margin: 6px 0 14px 0;">
-                <span>🎯 2-Second Ambient Auto-Calibrate</span>
-            </button>
+                <h3 class="wizard-title">Choose Your Bird Style</h3>
+                <p class="wizard-subtitle">Tap any plumage skin to customize your flyer:</p>
 
-            <div class="wizard-nav-buttons split">
-                <button class="btn-secondary" id="btn-wizard-back-2">
-                    <span>⬅️ Back</span>
-                </button>
-                <button class="btn-primary" id="btn-wizard-next-2">
-                    <span>Next: Pick Skin</span>
-                    <span>➡️</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- STEP 3: Character Pick & Launch -->
-        <div class="wizard-page" id="wizard-page-3">
-            <h3 class="wizard-title">🐥 Pick Your Bird</h3>
-            <p class="wizard-subtitle">Select your favorite feathered flyer:</p>
-
-            <div class="skin-grid-wizard" id="wizard-skin-grid">
-                <div class="skin-chip active" data-skin="sunny">
-                    <div class="skin-preview-dot" style="background: #FFD700;"></div>
-                    <span>Sunny Chick</span>
+                <div class="skin-grid-wizard" id="wizard-skin-grid">
+                    <div class="skin-chip active" data-skin="sunny">
+                        <div class="skin-preview-dot" style="background: #FFD700; box-shadow: 0 0 8px #FFD700;"></div>
+                        <span>Sunny Chick</span>
+                    </div>
+                    <div class="skin-chip" data-skin="cotton">
+                        <div class="skin-preview-dot" style="background: #FFB6C1; box-shadow: 0 0 8px #FFB6C1;"></div>
+                        <span>Cotton Candy</span>
+                    </div>
+                    <div class="skin-chip" data-skin="sky">
+                        <div class="skin-preview-dot" style="background: #70D6FF; box-shadow: 0 0 8px #70D6FF;"></div>
+                        <span>Cloud Jay</span>
+                    </div>
+                    <div class="skin-chip" data-skin="phoenix">
+                        <div class="skin-preview-dot" style="background: #FF8C42; box-shadow: 0 0 8px #FF8C42;"></div>
+                        <span>Golden Ember</span>
+                    </div>
+                    <div class="skin-chip" data-skin="matcha">
+                        <div class="skin-preview-dot" style="background: #A8DADC; box-shadow: 0 0 8px #A8DADC;"></div>
+                        <span>Matcha Puff</span>
+                    </div>
                 </div>
-                <div class="skin-chip" data-skin="cotton">
-                    <div class="skin-preview-dot" style="background: #FFB6C1;"></div>
-                    <span>Cotton Candy</span>
-                </div>
-                <div class="skin-chip" data-skin="sky">
-                    <div class="skin-preview-dot" style="background: #70D6FF;"></div>
-                    <span>Cloud Jay</span>
-                </div>
-                <div class="skin-chip" data-skin="phoenix">
-                    <div class="skin-preview-dot" style="background: #FF8C42;"></div>
-                    <span>Golden Ember</span>
-                </div>
-                <div class="skin-chip" data-skin="matcha">
-                    <div class="skin-preview-dot" style="background: #A8DADC;"></div>
-                    <span>Matcha Puff</span>
-                </div>
-            </div>
 
-            <div class="launch-tip-card">
-                <span style="font-size: 22px;">⚡</span>
-                <p>Speed accelerates constantly over time! Grab <strong>⭐ Golden Stars</strong> for bonus score.</p>
-            </div>
+                <div class="launch-tip-card">
+                    <span style="font-size: 20px;">⚡</span>
+                    <p>Speed continuously increases as you fly! Collect <strong>⭐ Golden Stars</strong> for extra points.</p>
+                </div>
 
-            <div class="wizard-nav-buttons split" style="margin-top: 14px;">
-                <button class="btn-secondary" id="btn-wizard-back-3">
-                    <span>⬅️ Back</span>
-                </button>
-                <button class="btn-primary btn-pulsate" id="btn-wizard-launch">
-                    <span>🚀 LET'S FLY!</span>
-                </button>
+                <div class="wizard-nav-buttons split" style="margin-top: 14px;">
+                    <button class="btn-secondary" id="btn-wizard-back-3">
+                        <span>⬅️ Back</span>
+                    </button>
+                    <button class="btn-primary btn-pulsate" id="btn-wizard-launch">
+                        <span>🚀 SAVE & FLY!</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Room Auto Calibration Modal -->
+<!-- Room Auto Calibration Modal with Sonar Radar Animation -->
 <div class="modal-backdrop" id="calib-modal">
-    <div class="modal-box">
-        <h3 style="color: #ff5c8a; font-size: 22px; margin-bottom: 8px;">Calibrating Room Noise...</h3>
-        <p style="font-size: 13px; color: #666;">Please stay relatively quiet for 2 seconds while we measure ambient background noise.</p>
+    <div class="modal-box calib-box-animated">
+        <div class="sonar-radar-wrapper">
+            <div class="sonar-wave wave-1"></div>
+            <div class="sonar-wave wave-2"></div>
+            <div class="sonar-wave wave-3"></div>
+            <div class="sonar-center-icon">🎙️</div>
+        </div>
+        <h3 style="color: #ff5c8a; font-size: 20px; margin-top: 10px; margin-bottom: 6px;">Calibrating Room Noise...</h3>
+        <p style="font-size: 13px; color: #666;">Please stay quiet for 2 seconds while we measure ambient room acoustics.</p>
         <div class="calib-progress-bar">
             <div class="calib-progress-fill" id="calib-fill"></div>
         </div>
-        <p style="font-size: 12px; color: #888;">Listening to room acoustics...</p>
+        <p style="font-size: 11px; color: #888;">Optimizing speech detection filter...</p>
     </div>
 </div>
 
@@ -300,6 +370,9 @@
         const btnStartSoundLabel = document.getElementById('btn-start-sound-label');
         const btnHudFullscreen = document.getElementById('btn-hud-fullscreen');
         const btnStartFullscreen = document.getElementById('btn-start-fullscreen');
+        const btnHudSettings = document.getElementById('btn-hud-settings');
+        const btnStartSettings = document.getElementById('btn-start-settings');
+        const btnGameoverSettings = document.getElementById('btn-gameover-settings');
 
         const hudMicMeter = document.getElementById('hud-mic-meter');
         const meterFill = document.getElementById('meter-fill');
@@ -312,9 +385,12 @@
 
         // Wizard UI References
         const wizardModal = document.getElementById('wizard-modal');
+        const btnWizardClose = document.getElementById('btn-wizard-close');
         const dotStep1 = document.getElementById('dot-step-1');
         const dotStep2 = document.getElementById('dot-step-2');
         const dotStep3 = document.getElementById('dot-step-3');
+        const lineStep1 = document.getElementById('line-step-1');
+        const lineStep2 = document.getElementById('line-step-2');
         const page1 = document.getElementById('wizard-page-1');
         const page2 = document.getElementById('wizard-page-2');
         const page3 = document.getElementById('wizard-page-3');
@@ -332,10 +408,19 @@
         const wizardMicText = document.getElementById('wizard-mic-text');
         const btnWizardConnectMic = document.getElementById('btn-wizard-connect-mic');
         const voiceTestFill = document.getElementById('voice-test-fill');
+        const voiceTestThreshold = document.getElementById('voice-test-threshold');
+        const voiceThresholdVal = document.getElementById('voice-threshold-val');
         const voiceTestFeedback = document.getElementById('voice-test-feedback');
-        const voiceEqBars = document.querySelectorAll('.eq-bar');
         const presetChips = document.querySelectorAll('.preset-chip');
         const btnWizardCalibrate = document.getElementById('btn-wizard-calibrate');
+
+        // Mini Flight & Oscilloscope Canvas
+        const voiceWaveCanvas = document.getElementById('voice-wave-canvas');
+        const waveCtx = voiceWaveCanvas ? voiceWaveCanvas.getContext('2d') : null;
+        const miniBirdAvatar = document.getElementById('mini-bird-avatar');
+        const miniBirdWing = document.getElementById('mini-bird-wing');
+        let miniBirdY = 0;
+        let miniBirdVy = 0;
 
         // Device Detection: Mobile vs Laptop / Desktop
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 600);
@@ -346,10 +431,10 @@
         } else {
             document.body.classList.add('desktop-device');
             if (btnStartText) btnStartText.innerText = 'SAY "JUMP!" OR PRESS SPACE';
-            if (startHintText) startHintText.innerHTML = 'Shout <strong>"JUMP!"</strong> or press <kbd>Space</kbd> / <kbd>▲</kbd> to fly! Press <kbd>F</kbd> for Fullscreen.';
+            if (startHintText) startHintText.innerHTML = 'Shout <strong>"JUMP!"</strong> or press <kbd>Space</kbd> / <kbd>▲</kbd> to fly! Press <kbd>F</kbd> for Fullscreen, <kbd>S</kbd> for Settings.';
         }
 
-        // Check if first-time user
+        // Check if user should see setup modal on launch
         const hasCompletedOnboarding = localStorage.getItem('fluffy_onboarding_done');
         if (!hasCompletedOnboarding) {
             setTimeout(() => {
@@ -364,6 +449,7 @@
             wizardModal.classList.add('active');
             goToWizardStep(step);
             if (window.sfx) window.sfx.playIntro();
+            startOscilloscopeLoop();
         }
 
         function closeWizard() {
@@ -371,20 +457,65 @@
             localStorage.setItem('fluffy_onboarding_done', 'true');
         }
 
+        if (btnWizardClose) {
+            btnWizardClose.addEventListener('click', () => {
+                closeWizard();
+                if (window.sfx) window.sfx.playClick();
+            });
+        }
+
+        if (btnStartSettings) {
+            btnStartSettings.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openWizard(1);
+            });
+        }
+
+        if (btnHudSettings) {
+            btnHudSettings.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openWizard(2);
+            });
+        }
+
+        if (btnGameoverSettings) {
+            btnGameoverSettings.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openWizard(1);
+            });
+        }
+
+        // Stepper Navigation
+        [dotStep1, dotStep2, dotStep3].forEach(dot => {
+            if (!dot) return;
+            dot.addEventListener('click', () => {
+                const step = parseInt(dot.getAttribute('data-step') || '1', 10);
+                goToWizardStep(step);
+            });
+        });
+
         function goToWizardStep(step) {
             [page1, page2, page3].forEach(p => { if (p) p.classList.remove('active'); });
             [dotStep1, dotStep2, dotStep3].forEach(d => { if (d) d.classList.remove('active'); });
+            if (lineStep1) lineStep1.classList.remove('active');
+            if (lineStep2) lineStep2.classList.remove('active');
 
             if (step === 1 && page1 && dotStep1) {
                 page1.classList.add('active');
                 dotStep1.classList.add('active');
             } else if (step === 2 && page2 && dotStep2) {
                 page2.classList.add('active');
+                dotStep1.classList.add('active');
                 dotStep2.classList.add('active');
+                if (lineStep1) lineStep1.classList.add('active');
                 connectMicrophone();
             } else if (step === 3 && page3 && dotStep3) {
                 page3.classList.add('active');
+                dotStep1.classList.add('active');
+                dotStep2.classList.add('active');
                 dotStep3.classList.add('active');
+                if (lineStep1) lineStep1.classList.add('active');
+                if (lineStep2) lineStep2.classList.add('active');
             }
             if (window.sfx) window.sfx.playStep();
         }
@@ -430,9 +561,17 @@
                 wizardMicText.innerText = 'Click below to allow microphone access';
                 wizardMicCard.classList.remove('connected');
                 btnWizardConnectMic.style.display = 'inline-flex';
-                voiceTestFeedback.innerText = '⚠️ Click Grant Microphone above';
+                voiceTestFeedback.innerText = '⚠️ Click Allow Microphone above';
                 voiceTestFeedback.style.color = '#888';
             }
+        }
+
+        function syncThresholdUI() {
+            const th = window.audioController.threshold;
+            const pct = Math.round(th * 100);
+            if (meterThresholdLine) meterThresholdLine.style.left = `${pct}%`;
+            if (voiceTestThreshold) voiceTestThreshold.style.left = `${pct}%`;
+            if (voiceThresholdVal) voiceThresholdVal.innerText = `Trigger: ${pct}%`;
         }
 
         presetChips.forEach(chip => {
@@ -441,9 +580,7 @@
                 chip.classList.add('active');
                 const preset = chip.getAttribute('data-preset');
                 window.audioController.setSensitivityPreset(preset);
-                if (meterThresholdLine) {
-                    meterThresholdLine.style.left = Math.round(window.audioController.threshold * 100) + '%';
-                }
+                syncThresholdUI();
                 if (window.sfx) window.sfx.playClick();
             });
         });
@@ -458,9 +595,7 @@
             if (res) {
                 voiceTestFeedback.innerText = '✅ Auto-Calibrated!';
                 voiceTestFeedback.style.color = '#4CAF50';
-                if (meterThresholdLine) {
-                    meterThresholdLine.style.left = Math.round(res.threshold * 100) + '%';
-                }
+                syncThresholdUI();
                 connectMicrophone();
             }
         });
@@ -476,13 +611,140 @@
             if (window.sfx) window.sfx.playHighscore();
         });
 
-        // Top HUD Mic Meter click to enable
+        // Top HUD Mic Meter click to open Voice Studio
         if (hudMicMeter) {
             hudMicMeter.style.cursor = 'pointer';
             hudMicMeter.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                await connectMicrophone();
+                openWizard(2);
             });
+        }
+
+        // Oscilloscope & Mini Flight Simulator Animation Loop
+        let oscRunning = false;
+        function startOscilloscopeLoop() {
+            if (oscRunning) return;
+            oscRunning = true;
+
+            const renderOsc = () => {
+                if (!wizardModal.classList.contains('active')) {
+                    oscRunning = false;
+                    return;
+                }
+
+                if (waveCtx && voiceWaveCanvas) {
+                    const w = voiceWaveCanvas.width;
+                    const h = voiceWaveCanvas.height;
+                    waveCtx.clearRect(0, 0, w, h);
+
+                    // Background subtle grid
+                    waveCtx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+                    waveCtx.fillRect(0, 0, w, h);
+
+                    // Grid scanlines
+                    waveCtx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+                    waveCtx.lineWidth = 1;
+                    for (let x = 0; x < w; x += 20) {
+                        waveCtx.beginPath();
+                        waveCtx.moveTo(x, 0);
+                        waveCtx.lineTo(x, h);
+                        waveCtx.stroke();
+                    }
+
+                    // Render Frequency Spectrum Bars in Background
+                    if (window.audioController.freqArray && window.audioController.isListening) {
+                        const freq = window.audioController.freqArray;
+                        const numBars = 24;
+                        const barWidth = (w / numBars) - 2;
+                        for (let i = 0; i < numBars; i++) {
+                            const val = freq[i * 2] || 0;
+                            const barH = (val / 255) * (h * 0.7);
+                            const bx = i * (barWidth + 2) + 2;
+                            const by = h - barH;
+
+                            const barGrad = waveCtx.createLinearGradient(bx, h, bx, by);
+                            barGrad.addColorStop(0, 'rgba(76, 201, 240, 0.15)');
+                            barGrad.addColorStop(1, 'rgba(255, 92, 138, 0.6)');
+                            waveCtx.fillStyle = barGrad;
+                            waveCtx.fillRect(bx, by, barWidth, barH);
+                        }
+                    }
+
+                    // Render Glowing Waveform
+                    waveCtx.lineWidth = 2.5;
+                    const waveGrad = waveCtx.createLinearGradient(0, 0, w, 0);
+                    waveGrad.addColorStop(0, '#4cc9f0');
+                    waveGrad.addColorStop(0.5, '#7209b7');
+                    waveGrad.addColorStop(1, '#ff5c8a');
+                    waveCtx.strokeStyle = waveGrad;
+                    waveCtx.shadowColor = '#ff5c8a';
+                    waveCtx.shadowBlur = 8;
+
+                    waveCtx.beginPath();
+                    const floatData = window.audioController.floatArray;
+                    const midY = h / 2;
+
+                    if (floatData && window.audioController.isListening) {
+                        const sliceW = w / (floatData.length * 0.5);
+                        let x = 0;
+                        for (let i = 0; i < floatData.length * 0.5; i++) {
+                            const v = floatData[i];
+                            const y = midY + v * (h * 0.45);
+                            if (i === 0) waveCtx.moveTo(x, y);
+                            else waveCtx.lineTo(x, y);
+                            x += sliceW;
+                        }
+                    } else {
+                        // Idle gentle breathing sine wave
+                        const t = performance.now() * 0.003;
+                        for (let x = 0; x < w; x += 4) {
+                            const y = midY + Math.sin(x * 0.05 + t) * 4;
+                            if (x === 0) waveCtx.moveTo(x, y);
+                            else waveCtx.lineTo(x, y);
+                        }
+                    }
+                    waveCtx.stroke();
+                    waveCtx.shadowBlur = 0;
+                }
+
+                // Mini Flight Physics in Step 2 Preview
+                if (miniBirdAvatar && page2 && page2.classList.contains('active')) {
+                    const isContinuous = window.audioController.mode === 'continuous_float';
+                    const vol = window.audioController.smoothedVolume;
+                    const th = window.audioController.threshold;
+
+                    if (isContinuous) {
+                        const intensity = window.audioController.getCurrentIntensity();
+                        if (intensity > 0.05) {
+                            miniBirdVy -= intensity * 0.6;
+                            if (miniBirdWing) miniBirdWing.style.transform = 'rotate(-30deg)';
+                        } else {
+                            miniBirdVy += 0.25;
+                            if (miniBirdWing) miniBirdWing.style.transform = 'rotate(15deg)';
+                        }
+                    } else {
+                        // Flap mode
+                        if (vol >= th) {
+                            miniBirdVy = -3.8;
+                            if (miniBirdWing) miniBirdWing.style.transform = 'rotate(-40deg)';
+                        } else {
+                            miniBirdVy += 0.22;
+                            if (miniBirdWing) miniBirdWing.style.transform = 'rotate(10deg)';
+                        }
+                    }
+
+                    // Bounds & Damping
+                    miniBirdVy *= 0.90;
+                    miniBirdY += miniBirdVy;
+                    if (miniBirdY > 18) { miniBirdY = 18; miniBirdVy = 0; }
+                    if (miniBirdY < -18) { miniBirdY = -18; miniBirdVy = 0; }
+
+                    miniBirdAvatar.style.transform = `translateY(${miniBirdY}px) rotate(${miniBirdVy * 4}deg)`;
+                }
+
+                requestAnimationFrame(renderOsc);
+            };
+            requestAnimationFrame(renderOsc);
         }
 
         // Live Audio Level Updates
@@ -510,27 +772,21 @@
                 meterLabel.innerText = 'Tap Mic';
             }
 
-            // Wizard Live Voice Test Bar & Equalizer
+            // Wizard Live Voice Test Bar
             if (voiceTestFill && wizardModal.classList.contains('active')) {
                 const displayPct = Math.min(100, Math.max(0, Math.round((rawVol || vol) * 100)));
                 voiceTestFill.style.width = displayPct + '%';
 
-                if (voiceEqBars.length > 0) {
-                    voiceEqBars.forEach((bar, idx) => {
-                        const wave = Math.sin(performance.now() * 0.018 + idx * 0.85);
-                        const h = displayPct > 3 ? Math.min(28, Math.max(4, (displayPct * 0.38) * (0.6 + 0.4 * wave))) : 4;
-                        bar.style.height = `${h}px`;
-                    });
-                }
-
                 if (displayPct >= Math.round(threshold * 100)) {
-                    voiceTestFeedback.innerText = `🎉 Voice Detected! (${displayPct}%)`;
+                    voiceTestFeedback.innerText = `🎉 Voice Spike! (${displayPct}%)`;
                     voiceTestFeedback.style.color = '#ff5c8a';
+                    voiceTestFill.style.background = 'linear-gradient(90deg, #ffbe0b, #ff006e)';
                 } else if (displayPct > 4) {
-                    voiceTestFeedback.innerText = `🎙️ Sound detected: ${displayPct}% (Speak a bit louder)`;
+                    voiceTestFeedback.innerText = `🎙️ Vocal Sound: ${displayPct}%`;
                     voiceTestFeedback.style.color = '#4cc9f0';
+                    voiceTestFill.style.background = 'linear-gradient(90deg, #4cc9f0, #ff6b8b)';
                 } else if (window.audioController.isListening) {
-                    voiceTestFeedback.innerText = '👂 Listening... Speak into your mic!';
+                    voiceTestFeedback.innerText = '👂 Listening... Say "Hop!" or Hum';
                     voiceTestFeedback.style.color = '#4CAF50';
                 }
             }
@@ -607,9 +863,9 @@
         // Viewport Touch / Pointer Controls
         const viewport = document.getElementById('viewport');
         viewport.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('#btn-hud-sound') || e.target.closest('#btn-hud-fullscreen') || e.target.closest('.hud-mic-meter') || e.target.closest('#btn-start-fullscreen') || e.target.closest('#btn-start-sound')) return;
+            if (e.target.closest('#btn-hud-sound') || e.target.closest('#btn-hud-fullscreen') || e.target.closest('#btn-hud-settings') || e.target.closest('.hud-mic-meter') || e.target.closest('#btn-start-fullscreen') || e.target.closest('#btn-start-sound') || e.target.closest('#btn-start-settings')) return;
             
-            // Fast audio unlock on user gesture
+            // Audio unlock on user gesture
             if (window.sfx && window.sfx.ctx && window.sfx.ctx.state === 'suspended') {
                 window.sfx.ctx.resume();
             }
@@ -642,6 +898,14 @@
             }
             if (e.code === 'KeyM') {
                 toggleSound();
+                return;
+            }
+            if (e.code === 'KeyS') {
+                openWizard(1);
+                return;
+            }
+            if (e.code === 'Escape' && wizardModal.classList.contains('active')) {
+                closeWizard();
                 return;
             }
             if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter') {
@@ -682,6 +946,10 @@
 
         // Skin Selectors in Wizard Step 3
         const allSkinChips = document.querySelectorAll('.skin-chip');
+        const wizardSkinBody = document.getElementById('wizard-skin-body');
+        const wizardSkinWing = document.getElementById('wizard-skin-wing');
+        const skinSelectedName = document.getElementById('skin-selected-name');
+
         allSkinChips.forEach(chip => {
             chip.addEventListener('click', () => {
                 const skinKey = chip.getAttribute('data-skin');
@@ -689,6 +957,12 @@
                     c.classList.toggle('active', c.getAttribute('data-skin') === skinKey);
                 });
                 engine.bird.setSkin(skinKey);
+                const skinObj = engine.bird.skins[skinKey];
+                if (skinObj) {
+                    if (skinSelectedName) skinSelectedName.innerText = skinObj.name;
+                    if (wizardSkinBody) wizardSkinBody.style.background = `radial-gradient(circle at 30% 30%, ${skinObj.body}, ${skinObj.bodyGradient})`;
+                    if (wizardSkinWing) wizardSkinWing.style.background = `linear-gradient(135deg, ${skinObj.wing}, ${skinObj.wingEdge})`;
+                }
                 if (window.sfx) window.sfx.playClick();
             });
         });

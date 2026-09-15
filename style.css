@@ -56,7 +56,6 @@ body {
 /* Game Viewport Container: Perfectly proportioned for Laptop & Responsive for Mobile */
 .game-viewport {
     position: relative;
-    /* Clean 2:3 aspect ratio matching 480x720 internal resolution */
     width: min(480px, 92vw, calc(90vh * 2 / 3));
     height: min(720px, calc(92vw * 3 / 2), 90vh);
     aspect-ratio: 2 / 3;
@@ -129,6 +128,7 @@ body {
     background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
     border-radius: 50%;
     box-shadow: 0 8px 18px rgba(255, 165, 0, 0.35);
+    transition: background 0.3s ease;
 }
 
 .hero-bird-wing {
@@ -141,6 +141,7 @@ body {
     left: 4px;
     transform-origin: top left;
     animation: wingFlutter 0.35s ease-in-out infinite alternate;
+    transition: background 0.3s ease;
 }
 
 @keyframes wingFlutter {
@@ -193,11 +194,11 @@ body {
 
 /* Title & Rainbow Shimmer */
 .title-group {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .game-title {
-    font-size: 40px;
+    font-size: 38px;
     font-weight: 800;
     letter-spacing: 1.5px;
     line-height: 1.1;
@@ -233,7 +234,7 @@ body {
 .start-hint-text {
     font-size: 13px;
     color: #555;
-    margin-top: 14px;
+    margin-top: 12px;
     max-width: 290px;
     line-height: 1.45;
     background: rgba(255, 255, 255, 0.85);
@@ -259,17 +260,17 @@ body {
     color: white;
     border: none;
     font-family: inherit;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
-    padding: 14px 28px;
+    padding: 13px 26px;
     border-radius: 40px;
     cursor: pointer;
     box-shadow: 0 8px 24px rgba(255, 107, 139, 0.4), inset 0 2px 0 rgba(255,255,255,0.4);
     transition: all 0.16s ease;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    margin: 8px 0;
+    margin: 6px 0;
     touch-action: manipulation;
 }
 
@@ -319,6 +320,20 @@ body {
 
 .btn-secondary:active {
     transform: translateY(1px) scale(0.96);
+}
+
+.btn-settings-trigger {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: #ffd1dc;
+    color: #ff5c8a;
+    font-size: 13.5px;
+    padding: 8px 18px;
+    box-shadow: 0 4px 14px rgba(255, 92, 138, 0.15);
+}
+
+.btn-settings-trigger:hover {
+    background: #fff0f3;
+    border-color: #ff5c8a;
 }
 
 .menu-sub-actions {
@@ -521,13 +536,14 @@ body {
 }
 
 /* ======================================================= */
-/* Onboarding & Setup Wizard Modal */
+/* Advanced 3D Glassmorphic Setup & Settings Wizard Modal */
 /* ======================================================= */
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(20, 15, 35, 0.55);
-    backdrop-filter: blur(8px);
+    background: rgba(15, 12, 30, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     display: none;
     justify-content: center;
     align-items: center;
@@ -537,75 +553,147 @@ body {
 
 .modal-backdrop.active {
     display: flex;
-    animation: modalFadeIn 0.25s ease;
+    animation: modalBackdropFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes modalFadeIn {
+@keyframes modalBackdropFadeIn {
     0% { opacity: 0; }
     100% { opacity: 1; }
 }
 
-.wizard-box {
-    background: rgba(255, 255, 255, 0.98);
-    border-radius: 26px;
-    padding: 26px;
+.wizard-box-container {
+    position: relative;
     max-width: 440px;
+    width: 100%;
+    border-radius: 28px;
+    padding: 3px;
+    background: transparent;
+}
+
+/* Rotating Multicolor Conic Glow Border */
+.wizard-glow-border {
+    position: absolute;
+    inset: -2px;
+    border-radius: 30px;
+    background: conic-gradient(from 0deg, #ff5c8a, #4cc9f0, #ffbe0b, #7209b7, #ff5c8a);
+    animation: rotateBorderGlow 8s linear infinite;
+    z-index: 0;
+    opacity: 0.85;
+    filter: blur(8px);
+}
+
+@keyframes rotateBorderGlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.wizard-box {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 26px;
+    padding: 24px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 24px 60px rgba(50, 25, 70, 0.32);
-    position: relative;
-    animation: wizardPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 24px 60px rgba(20, 10, 35, 0.35);
+    animation: wizardPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes wizardPop {
-    0% { transform: scale(0.9) translateY(15px); opacity: 0; }
+    0% { transform: scale(0.88) translateY(20px); opacity: 0; }
     100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
+/* Modal Close Button */
+.modal-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: #f1f3f5;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+.modal-close-btn:hover {
+    background: #ff5c8a;
+    color: white;
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* Stepper Progress Indicator */
 .wizard-progress-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 18px;
+    padding: 0 8px;
 }
 
 .wizard-step-dot {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #aaa;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.wizard-step-dot span {
-    width: 24px;
-    height: 24px;
+.step-num {
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     background: #e9ecef;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #666;
-    font-size: 11px;
+    color: #777;
+    font-size: 12px;
+    font-weight: 800;
+    transition: all 0.25s ease;
 }
 
-.wizard-step-dot.active {
-    color: #ff5c8a;
+.step-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #aaa;
+    transition: color 0.25s ease;
 }
 
-.wizard-step-dot.active span {
-    background: #ff5c8a;
+.wizard-step-dot.active .step-num {
+    background: linear-gradient(135deg, #ff5c8a, #ff8e53);
     color: white;
-    box-shadow: 0 0 10px rgba(255, 92, 138, 0.4);
+    box-shadow: 0 0 12px rgba(255, 92, 138, 0.5);
+    transform: scale(1.12);
+}
+
+.wizard-step-dot.active .step-label {
+    color: #ff5c8a;
 }
 
 .wizard-step-line {
     flex: 1;
-    height: 2px;
-    background: #eee;
+    height: 3px;
+    background: #e9ecef;
     margin: 0 8px;
+    border-radius: 2px;
+    transition: background 0.3s ease;
+}
+
+.wizard-step-line.active {
+    background: linear-gradient(90deg, #ff5c8a, #ffbe0b);
 }
 
 .wizard-page {
@@ -615,11 +703,17 @@ body {
 
 .wizard-page.active {
     display: flex;
+    animation: pageSlideIn 0.25s ease-out;
+}
+
+@keyframes pageSlideIn {
+    0% { opacity: 0; transform: translateX(12px); }
+    100% { opacity: 1; transform: translateX(0); }
 }
 
 .wizard-hero-anim {
     position: relative;
-    height: 55px;
+    height: 52px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -627,12 +721,23 @@ body {
 }
 
 .wizard-bird-preview {
-    font-size: 42px;
+    font-size: 44px;
     animation: heroBirdBounce 1.6s ease-in-out infinite alternate;
 }
 
+.particle-sparkle {
+    position: absolute;
+    font-size: 18px;
+    animation: sparkleFloat 2s ease-in-out infinite alternate;
+}
+
+@keyframes sparkleFloat {
+    0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 0.4; }
+    100% { transform: translateY(-8px) scale(1.2) rotate(20deg); opacity: 1; }
+}
+
 .wizard-title {
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 800;
     color: #ff5c8a;
     text-align: center;
@@ -643,9 +748,10 @@ body {
     font-size: 12px;
     color: #666;
     text-align: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
+/* Mode Cards with 3D Hover & Glow */
 .mode-card-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -659,19 +765,21 @@ body {
     border-radius: 18px;
     padding: 14px 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     text-align: center;
 }
 
 .mode-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .mode-card.active {
     background: #fff0f3;
     border-color: #ff6b8b;
-    box-shadow: 0 6px 18px rgba(255, 107, 139, 0.2);
+    box-shadow: 0 8px 22px rgba(255, 107, 139, 0.25);
+    transform: translateY(-2px);
 }
 
 .mode-card-badge {
@@ -685,11 +793,15 @@ body {
     font-weight: 800;
     padding: 2px 8px;
     border-radius: 8px;
+    letter-spacing: 0.5px;
+}
+
+.mode-card-icon-wrapper {
+    margin-bottom: 4px;
 }
 
 .mode-card-icon {
-    font-size: 26px;
-    margin-bottom: 4px;
+    font-size: 28px;
 }
 
 .mode-card-title {
@@ -707,15 +819,34 @@ body {
     font-size: 11px;
     color: #666;
     line-height: 1.35;
+    margin-bottom: 6px;
 }
 
+.mode-status-indicator {
+    display: none;
+    font-size: 9px;
+    font-weight: 800;
+    color: #ff5c8a;
+    background: rgba(255, 92, 138, 0.12);
+    padding: 2px 6px;
+    border-radius: 6px;
+    width: max-content;
+    margin: 0 auto;
+}
+
+.mode-card.active .mode-status-indicator {
+    display: block;
+}
+
+/* Wizard Mic Status Card */
 .wizard-mic-status-card {
     background: #f1f3f5;
     border-radius: 16px;
-    padding: 12px;
+    padding: 10px 12px;
     text-align: center;
     margin-bottom: 12px;
     border: 2px dashed #ced4da;
+    transition: all 0.2s ease;
 }
 
 .wizard-mic-status-card.connected {
@@ -730,27 +861,165 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
 }
 
-.voice-test-box {
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 14px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+.mic-status-icon {
+    font-size: 16px;
 }
 
-.voice-test-header {
+/* ======================================================= */
+/* Live Voice Sandbox: Oscilloscope & Mini Flight Simulator */
+/* ======================================================= */
+.voice-sandbox-card {
+    background: #ffffff;
+    border: 1.5px solid #e9ecef;
+    border-radius: 16px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.sandbox-top-header {
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
-    font-weight: 700;
-    color: #555;
-    margin-bottom: 6px;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
+.sandbox-title-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #444;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4CAF50;
+    animation: dotPulse 1.2s infinite;
+}
+
+@keyframes dotPulse {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+.sandbox-feedback {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+}
+
+.oscilloscope-container {
+    position: relative;
+    width: 100%;
+    height: 70px;
+    background: #0f172a;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#voice-wave-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Mini Flight Simulator overlay in Step 2 */
+.mini-flight-stage {
+    position: absolute;
+    right: 12px;
+    top: 6px;
+    bottom: 6px;
+    width: 48px;
+    border-left: 1px dashed rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.mini-flight-label {
+    position: absolute;
+    bottom: 2px;
+    font-size: 7px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.mini-bird-avatar {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    transition: transform 0.05s linear;
+}
+
+.mini-bird-body {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
+    border-radius: 50%;
+}
+
+.mini-bird-wing {
+    position: absolute;
+    width: 10px;
+    height: 7px;
+    background: #FF8C00;
+    border-radius: 5px;
+    top: 8px;
+    left: 1px;
+    transform-origin: top left;
+    transition: transform 0.1s ease;
+}
+
+.mini-bird-eye {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: white;
+    border-radius: 50%;
+    top: 5px;
+    right: 5px;
+}
+
+.mini-bird-eye::after {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #111;
+    border-radius: 50%;
+    top: 1px;
+    right: 1px;
+}
+
+.mini-bird-beak {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    border-left: 5px solid #FF6347;
+    top: 8px;
+    right: -3px;
+}
+
+/* Volume Track & Threshold Needle */
 .voice-test-track {
     width: 100%;
     height: 12px;
@@ -765,32 +1034,26 @@ body {
     width: 0%;
     background: linear-gradient(90deg, #4cc9f0, #ff6b8b);
     border-radius: 6px;
-    transition: width 0.05s linear;
+    transition: width 0.04s linear;
 }
 
 .voice-test-threshold {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 2px;
-    background: #333;
+    width: 3px;
+    background: #1d1e2c;
+    border-radius: 2px;
+    z-index: 3;
 }
 
-.voice-eq-bars {
+.voice-threshold-labels {
     display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 4px;
-    height: 28px;
-    margin-top: 8px;
-}
-
-.eq-bar {
-    width: 6px;
-    height: 4px;
-    background: linear-gradient(180deg, #ff6b8b, #4cc9f0);
-    border-radius: 3px;
-    transition: height 0.05s ease-out;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 700;
+    color: #888;
+    margin-top: 4px;
 }
 
 .sensitivity-presets-group {
@@ -812,21 +1075,81 @@ body {
 
 .preset-chip {
     flex: 1;
-    border: 1px solid #ddd;
+    border: 1.5px solid #ddd;
     background: white;
-    border-radius: 10px;
-    padding: 6px 3px;
-    font-size: 10px;
+    border-radius: 12px;
+    padding: 7px 4px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #555;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
+.preset-chip:hover {
+    border-color: #ff5c8a;
+    color: #ff5c8a;
+}
+
 .preset-chip.active {
     background: #ff5c8a;
     color: white;
     border-color: #ff5c8a;
+    box-shadow: 0 4px 10px rgba(255, 92, 138, 0.3);
+}
+
+.btn-calibrate-shimmer {
+    background: #ffffff;
+    border-color: #4cc9f0;
+    color: #0077b6;
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-calibrate-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(76, 201, 240, 0.25), transparent);
+    animation: shimmerSlide 2.5s infinite;
+}
+
+@keyframes shimmerSlide {
+    0% { left: -100%; }
+    100% { left: 200%; }
+}
+
+/* ======================================================= */
+/* STEP 3: Character Pick & 3D Skin Studio */
+/* ======================================================= */
+.skin-hero-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.skin-hero-avatar-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.skin-selected-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ff5c8a;
+    background: #fff0f3;
+    padding: 3px 14px;
+    border-radius: 14px;
+    margin-top: 4px;
+    border: 1px solid #ffd1dc;
 }
 
 .skin-grid-wizard {
@@ -848,13 +1171,19 @@ body {
     cursor: pointer;
     font-size: 12px;
     font-weight: 700;
-    transition: all 0.15s ease;
+    transition: all 0.16s ease;
+}
+
+.skin-chip:hover {
+    transform: translateY(-2px);
+    border-color: #ff5c8a;
 }
 
 .skin-chip.active {
     border-color: #ff6b8b;
     background: #fff0f3;
     color: #ff5c8a;
+    box-shadow: 0 4px 14px rgba(255, 92, 138, 0.2);
 }
 
 .skin-preview-dot {
@@ -880,7 +1209,7 @@ body {
 .wizard-nav-buttons {
     display: flex;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .wizard-nav-buttons.split {
@@ -889,6 +1218,7 @@ body {
 
 .wizard-nav-buttons.split .btn-secondary {
     flex: 1;
+    justify-content: center;
 }
 
 .wizard-nav-buttons.split .btn-primary {
@@ -897,6 +1227,9 @@ body {
     margin: 0;
 }
 
+/* ======================================================= */
+/* Sonar Radar Modal for Ambient Calibration */
+/* ======================================================= */
 .modal-box {
     background: white;
     border-radius: 22px;
@@ -905,6 +1238,44 @@ body {
     width: 100%;
     text-align: center;
     box-shadow: 0 20px 48px rgba(0,0,0,0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.sonar-radar-wrapper {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sonar-center-icon {
+    font-size: 24px;
+    z-index: 2;
+}
+
+.sonar-wave {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid #ff5c8a;
+    animation: sonarPulse 1.8s ease-out infinite;
+}
+
+.sonar-wave.wave-2 {
+    animation-delay: 0.6s;
+}
+
+.sonar-wave.wave-3 {
+    animation-delay: 1.2s;
+}
+
+@keyframes sonarPulse {
+    0% { transform: scale(0.3); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
 }
 
 .calib-progress-bar {
@@ -995,6 +1366,14 @@ body {
         font-size: 11.5px;
         max-width: 270px;
         padding: 8px 12px;
+    }
+
+    .wizard-box {
+        padding: 18px;
+    }
+
+    .wizard-title {
+        font-size: 19px;
     }
 }
 

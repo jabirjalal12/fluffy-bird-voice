@@ -336,21 +336,16 @@
     <div class="dev-diag-body">
         <!-- VAD State & Confidence -->
         <div class="diag-metric-row highlight">
-            <span class="diag-label">VAD State:</span>
-            <span class="diag-val-badge" id="diag-vad-state">IDLE</span>
+            <span class="diag-label">Microphone:</span>
+            <span class="diag-val-badge" id="diag-mic-status">CONNECTED</span>
         </div>
         
         <div class="diag-metric-row">
-            <span class="diag-label">Speech Confidence:</span>
+            <span class="diag-label">Current Level:</span>
             <div class="diag-bar-wrapper">
-                <div class="diag-bar-fill" id="diag-confidence-bar" style="width: 0%;"></div>
+                <div class="diag-bar-fill" id="diag-level-bar" style="width: 0%;"></div>
             </div>
-            <span class="diag-val" id="diag-confidence-val">0%</span>
-        </div>
-
-        <div class="diag-metric-row">
-            <span class="diag-label">Dynamic SNR:</span>
-            <span class="diag-val" id="diag-snr-val">+0.0 dB</span>
+            <span class="diag-val" id="diag-level-val">0.000</span>
         </div>
 
         <div class="diag-metric-row">
@@ -359,36 +354,29 @@
         </div>
 
         <div class="diag-metric-row">
-            <span class="diag-label">Current Mic RMS:</span>
-            <span class="diag-val" id="diag-rms-val">0.000</span>
+            <span class="diag-label">Trigger Threshold:</span>
+            <span class="diag-val" style="color: #ff5c8a; font-weight: 800;" id="diag-threshold-val">0.045</span>
         </div>
 
         <div class="diag-metric-row">
-            <span class="diag-label">Formant Ratio (F1-F3):</span>
-            <span class="diag-val" id="diag-formant-val">0%</span>
+            <span class="diag-label">Sound Delta:</span>
+            <span class="diag-val" style="color: #4cc9f0;" id="diag-delta-val">+0.000</span>
         </div>
 
         <div class="diag-metric-row">
-            <span class="diag-label">Harmonic Pitch (NACF):</span>
-            <span class="diag-val" id="diag-pitch-val">0.00</span>
+            <span class="diag-label">Sound Detected:</span>
+            <span class="diag-val-badge" id="diag-detected-badge">NO</span>
         </div>
 
         <div class="diag-metric-row">
-            <span class="diag-label">Crest Factor:</span>
-            <span class="diag-val" id="diag-crest-val">1.0</span>
+            <span class="diag-label">Bird State:</span>
+            <span class="diag-val" id="diag-bird-state">IDLE</span>
         </div>
 
         <div class="diag-divider"></div>
-        <div class="diag-subtitle">🛡️ False-Trigger Protection:</div>
-        
-        <div class="diag-tags-row">
-            <span class="diag-tag">Clicks: <b id="diag-clicks-count">0</b></span>
-            <span class="diag-tag">Bumps: <b id="diag-bumps-count">0</b></span>
-            <span class="diag-tag">Hums: <b id="diag-hums-count">0</b></span>
-        </div>
 
-        <div class="diag-metric-row" style="margin-top: 6px;">
-            <span class="diag-label">Total Voice Events:</span>
+        <div class="diag-metric-row">
+            <span class="diag-label">Total Triggers:</span>
             <span class="diag-val" style="color: #4CAF50;" id="diag-events-count">0</span>
         </div>
 
@@ -472,18 +460,14 @@
         // Developer Diagnostics Overlay References
         const devOverlay = document.getElementById('dev-diagnostics-overlay');
         const btnDevClose = document.getElementById('btn-dev-close');
-        const diagVadState = document.getElementById('diag-vad-state');
-        const diagConfidenceBar = document.getElementById('diag-confidence-bar');
-        const diagConfidenceVal = document.getElementById('diag-confidence-val');
-        const diagSnrVal = document.getElementById('diag-snr-val');
+        const diagMicStatus = document.getElementById('diag-mic-status');
+        const diagLevelBar = document.getElementById('diag-level-bar');
+        const diagLevelVal = document.getElementById('diag-level-val');
         const diagFloorVal = document.getElementById('diag-floor-val');
-        const diagRmsVal = document.getElementById('diag-rms-val');
-        const diagFormantVal = document.getElementById('diag-formant-val');
-        const diagPitchVal = document.getElementById('diag-pitch-val');
-        const diagCrestVal = document.getElementById('diag-crest-val');
-        const diagClicksCount = document.getElementById('diag-clicks-count');
-        const diagBumpsCount = document.getElementById('diag-bumps-count');
-        const diagHumsCount = document.getElementById('diag-hums-count');
+        const diagThresholdVal = document.getElementById('diag-threshold-val');
+        const diagDeltaVal = document.getElementById('diag-delta-val');
+        const diagDetectedBadge = document.getElementById('diag-detected-badge');
+        const diagBirdState = document.getElementById('diag-bird-state');
         const diagEventsCount = document.getElementById('diag-events-count');
 
         // Streamlined 2-Step Wizard UI References
@@ -785,7 +769,7 @@
                 // Mini Flight Physics in Step 1 Preview
                 if (miniBirdAvatar && page1 && page1.classList.contains('active')) {
                     const isContinuous = window.audioController.mode === 'continuous_float';
-                    const isVoiceActive = window.audioController.currentState === 'VOICE_CONFIRMED';
+                    const isVoiceActive = window.audioController.isSoundTriggered;
                     const intensity = window.audioController.getCurrentIntensity();
 
                     if (isContinuous) {
@@ -822,36 +806,26 @@
         }
 
         // ==============================================
-        // Autonomous Voice Engine UI Callbacks
+        // Autonomous Sound Engine UI Callbacks
         // ==============================================
-        window.audioController.onStateChange = (state, confidence, intensity) => {
+        window.audioController.onStateChange = (state, currentLevel, intensity) => {
             if (!hudVoiceStatus) return;
 
-            if (state === 'VOICE_CONFIRMED') {
+            if (state === 'ACTIVE') {
                 hudVoiceStatus.className = 'hud-voice-status active';
-                if (hudStatusIcon) hudStatusIcon.innerText = '✨';
-                if (hudStatusText) hudStatusText.innerText = 'Voice Active!';
-                if (hudStatusTag) hudStatusTag.innerText = 'VOICE';
+                if (hudStatusIcon) hudStatusIcon.innerText = '⚡';
+                if (hudStatusText) hudStatusText.innerText = 'Sound Detected!';
+                if (hudStatusTag) hudStatusTag.innerText = 'ACTIVE';
 
                 if (voiceTestFeedback && wizardModal.classList.contains('active')) {
-                    voiceTestFeedback.innerText = '✨ Voice Confirmed!';
+                    voiceTestFeedback.innerText = '⚡ Sound Burst Triggered!';
                     voiceTestFeedback.style.color = '#ff5c8a';
                 }
-            } else if (state === 'POSSIBLE_SPEECH') {
-                hudVoiceStatus.className = 'hud-voice-status listening';
+            } else {
+                // IDLE
+                hudVoiceStatus.className = 'hud-voice-status';
                 if (hudStatusIcon) hudStatusIcon.innerText = '🎙️';
                 if (hudStatusText) hudStatusText.innerText = 'Listening...';
-                if (hudStatusTag) hudStatusTag.innerText = 'HEARING';
-
-                if (voiceTestFeedback && wizardModal.classList.contains('active')) {
-                    voiceTestFeedback.innerText = '🎙️ Detecting Speech...';
-                    voiceTestFeedback.style.color = '#4cc9f0';
-                }
-            } else {
-                // IDLE or RELEASE_DELAY
-                hudVoiceStatus.className = 'hud-voice-status';
-                if (hudStatusIcon) hudStatusIcon.innerText = '🐦';
-                if (hudStatusText) hudStatusText.innerText = 'Bird Ready';
                 if (hudStatusTag) hudStatusTag.innerText = 'READY';
 
                 if (voiceTestFeedback && wizardModal.classList.contains('active')) {
@@ -865,42 +839,40 @@
         window.audioController.onDiagnosticsUpdate = (diag) => {
             if (!devOverlay || devOverlay.style.display === 'none') return;
 
-            if (diagVadState) {
-                diagVadState.innerText = diag.state;
-                diagVadState.className = 'diag-val-badge ' + (diag.state === 'VOICE_CONFIRMED' ? 'confirmed' : (diag.state === 'POSSIBLE_SPEECH' ? 'possible' : ''));
+            if (diagMicStatus) {
+                diagMicStatus.innerText = window.audioController.isListening ? 'CONNECTED' : 'DISCONNECTED';
+                diagMicStatus.style.background = window.audioController.isListening ? 'rgba(76, 175, 80, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+                diagMicStatus.style.borderColor = window.audioController.isListening ? '#4CAF50' : '#ef4444';
+                diagMicStatus.style.color = window.audioController.isListening ? '#4CAF50' : '#ef4444';
             }
-            if (diagConfidenceBar) {
-                const pct = Math.round(diag.confidence * 100);
-                diagConfidenceBar.style.width = pct + '%';
+            if (diagLevelBar) {
+                const pct = Math.min(100, Math.round(diag.currentLevel * 100 * 3));
+                diagLevelBar.style.width = pct + '%';
             }
-            if (diagConfidenceVal) {
-                diagConfidenceVal.innerText = Math.round(diag.confidence * 100) + '%';
-            }
-            if (diagSnrVal) {
-                diagSnrVal.innerText = (diag.snrDb >= 0 ? '+' : '') + diag.snrDb.toFixed(1) + ' dB';
-                diagSnrVal.style.color = diag.snrDb >= 6.0 ? '#4CAF50' : '#94a3b8';
+            if (diagLevelVal) {
+                diagLevelVal.innerText = diag.currentLevel.toFixed(3);
             }
             if (diagFloorVal) {
-                diagFloorVal.innerText = diag.noiseFloor.toFixed(4);
+                diagFloorVal.innerText = diag.noiseFloor.toFixed(3);
             }
-            if (diagRmsVal) {
-                diagRmsVal.innerText = diag.rms.toFixed(4);
+            if (diagThresholdVal) {
+                diagThresholdVal.innerText = diag.triggerThreshold.toFixed(3);
             }
-            if (diagFormantVal) {
-                diagFormantVal.innerText = Math.round(diag.formantRatio * 100) + '%';
-                diagFormantVal.style.color = diag.formantRatio >= 0.50 ? '#38bdf8' : '#94a3b8';
+            if (diagDeltaVal) {
+                diagDeltaVal.innerText = (diag.soundDelta >= 0 ? '+' : '') + diag.soundDelta.toFixed(3);
+                diagDeltaVal.style.color = diag.isTriggered ? '#4CAF50' : '#4cc9f0';
             }
-            if (diagPitchVal) {
-                diagPitchVal.innerText = diag.periodicity.toFixed(2);
-                diagPitchVal.style.color = diag.periodicity >= 0.30 ? '#ffbe0b' : '#94a3b8';
+            if (diagDetectedBadge) {
+                diagDetectedBadge.innerText = diag.isTriggered ? 'YES' : 'NO';
+                diagDetectedBadge.className = 'diag-val-badge ' + (diag.isTriggered ? 'confirmed' : '');
             }
-            if (diagCrestVal) {
-                diagCrestVal.innerText = diag.crestFactor.toFixed(1);
+            if (diagBirdState) {
+                diagBirdState.innerText = diag.state;
+                diagBirdState.style.color = diag.state === 'ACTIVE' ? '#ff5c8a' : '#94a3b8';
             }
-            if (diagClicksCount) diagClicksCount.innerText = diag.rejectedClicks.toString();
-            if (diagBumpsCount) diagBumpsCount.innerText = diag.rejectedBumps.toString();
-            if (diagHumsCount) diagHumsCount.innerText = diag.rejectedHums.toString();
-            if (diagEventsCount) diagEventsCount.innerText = diag.totalEvents.toString();
+            if (diagEventsCount) {
+                diagEventsCount.innerText = diag.totalEvents.toString();
+            }
         };
 
         window.audioController.onError = (err) => {

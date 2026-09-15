@@ -1,54 +1,75 @@
-# 🐥 Fluffy Bird - Voice-Controlled Flight Game
+# 🐥 Fluffy Bird - Autonomous Voice-Activated Flight Game
 
-A cute, responsive, voice-intensity-controlled arcade game built with HTML5 Canvas, Web Audio API, and custom physics.
+A vibrant, cute, voice-controlled arcade game built with HTML5 Canvas, Web Audio API, and custom relative sound dynamics.
 
-![Fluffy Bird](https://img.shields.io/badge/Fluffy%20Bird-Voice%20Controlled-ff69b4.svg)
+![Fluffy Bird](https://img.shields.io/badge/Fluffy%20Bird-Voice%20Activated-ff69b4.svg)
 ![HTML5](https://img.shields.io/badge/HTML5-Canvas-orange.svg)
 ![Web Audio](https://img.shields.io/badge/Web%20Audio-API-blue.svg)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 ---
 
-## 🎮 Features
+## 🌟 Key Highlights
 
-- **🎙️ Real-Time Voice Flight**:
-  - **⚡ Vocal Flap (Spike Mode)**: Say *"Hop!"*, *"Up!"*, or *"Ah!"* to flap upwards (classic Flappy Bird rhythm).
-  - **🌊 Voice Float (Continuous Mode)**: Hum, sing, or scream continuously! Louder voices elevate higher, softer hums hover gently.
-- **🎛️ Live Audio HUD & Calibration**:
-  - Real-time volume meter with adjustable trigger threshold line.
-  - **1-Click Auto-Calibrate**: Measures ambient background noise for 2 seconds to adapt to quiet or noisy rooms.
-  - Custom sliders for **Jump Height (Flap Power)**, **Pillar Gap (Spaciousness)**, **Threshold**, and **Sensitivity**.
-- **🐣 Procedural Cute Fluffy Bird Aesthetics**:
-  - Layered fluff tufts, animated fluttering wings, blinking/dizzy eyes, and feather particle trails.
-  - 5 customizable skins: *Sunny Chick*, *Cotton Candy*, *Cloud Jay*, *Golden Ember*, and *Matcha Puff*.
+- **🎙️ Zero-Configuration Relative Sound Trigger**:
+  - **No manual sliders, volume knobs, or calibration setups needed.**
+  - **Asymmetric Adaptive Noise Floor**: Tracks constant ambient noise (fans, air conditioning, laptop cooler hum) and ignores it automatically.
+  - **Dynamic Margin**: Adjusts trigger sensitivity based on room acoustics ($Threshold = NoiseFloor + DynamicMargin$).
+  - **Speech Freeze**: Baseline noise tracking freezes during speech so player vocalizations never raise the noise floor.
+
+- **🎮 Dual Flight Modes**:
+  - **⚡ Vocal Flap**: Say *"Hop!"*, *"Jump!"*, *"Up!"*, or *"Ah!"* to flap upwards (classic Flappy Bird arcade rhythm).
+  - **🌊 Voice Float**: Continuous vocalization / humming elevates the bird smoothly.
+
+- **🐣 Procedural Fluffy Plumage & Skins**:
+  - 5 customizable bird styles: *Sunny Chick*, *Cotton Candy*, *Cloud Jay*, *Golden Ember*, and *Matcha Puff*.
+  - Procedural wing flapping, blinking eyes, blush cheeks, and feather particle trails.
+
 - **⭐ Collectibles & Audio FX**:
-  - Collect spinning golden stars for $+3$ bonus points and sparkle bursts.
-  - Procedural sound effects synthesizer using the Web Audio API without external file dependencies.
+  - Collect spinning golden stars for $+3$ bonus score and sparkle bursts.
+  - Built-in procedural Web Audio synthesizer (no external audio files required).
   - Medal achievement system (Bronze, Silver, Gold, Platinum) with high score persistence via `localStorage`.
+
+- **🛠️ Hidden Developer Diagnostics HUD**:
+  - Press <kbd>Shift</kbd>+<kbd>D</kbd> or <kbd>D</kbd> to inspect real-time sound levels, noise floor, trigger threshold, sound delta, and trigger event counters.
 
 ---
 
 ## 🚀 Quick Start
 
-### Option 1: 1-Click Batch Launcher (Windows)
-Double-click `start.bat` to launch the local web server and open the browser automatically.
+### 1. Instant Windows Launcher
+Double-click `start.bat` to launch the local web server and open the game in your default browser.
 
-### Option 2: Python HTTP Server
+### 2. Python HTTP Server
 ```bash
 python run_game.py
 ```
 Then visit [http://localhost:8080](http://localhost:8080).
 
-### Option 3: Direct Browser
-Open `index.html` in any modern web browser (Chrome, Edge, Firefox, Safari).
+### 3. Direct Browser
+Open `index.html` directly in Chrome, Edge, Safari, or Firefox.
 
 ---
 
 ## ⌨️ Controls & Fallbacks
 
-- **Voice**: Make sharp sounds or hum into your microphone.
-- **Keyboard**: `Spacebar`, `Up Arrow`, or `W` to flap (or hold to float in Continuous mode).
-- **Mouse / Touch**: Click or tap the canvas.
+| Input Method | Action |
+|---|---|
+| **Voice / Sound** | Speak (*"Hop!"*, *"Jump!"*, *"Ah!"*), hum, or whistle to fly. |
+| **Keyboard** | <kbd>Space</kbd>, <kbd>W</kbd>, <kbd>↑</kbd> to flap or hold to float. <kbd>F</kbd> for Fullscreen, <kbd>S</kbd> for Settings, <kbd>Shift</kbd>+<kbd>D</kbd> for Developer Diagnostics. |
+| **Touch / Mouse** | Tap or click anywhere on the screen. |
+
+---
+
+## ☁️ Deployment
+
+### Deploy to Vercel (1-Click)
+This repository includes a pre-configured `vercel.json` for instant static zero-config deployment.
+
+```bash
+vercel --prod
+```
 
 ---
 

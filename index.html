@@ -446,6 +446,9 @@
         }
 
         function openWizard(step = 1) {
+            if (engine && engine.state === 'PLAYING') {
+                engine.state = 'PAUSED';
+            }
             wizardModal.classList.add('active');
             goToWizardStep(step);
             if (window.sfx) window.sfx.playIntro();
@@ -455,43 +458,67 @@
         function closeWizard() {
             wizardModal.classList.remove('active');
             localStorage.setItem('fluffy_onboarding_done', 'true');
+            if (engine && engine.state === 'PAUSED') {
+                engine.state = 'PLAYING';
+            }
         }
 
-        if (btnWizardClose) {
-            btnWizardClose.addEventListener('click', () => {
-                closeWizard();
-                if (window.sfx) window.sfx.playClick();
-            });
-        }
-
+        // Settings Buttons Bindings
         if (btnStartSettings) {
             btnStartSettings.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 openWizard(1);
             });
+            btnStartSettings.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
         if (btnHudSettings) {
             btnHudSettings.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 openWizard(2);
             });
+            btnHudSettings.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
         if (btnGameoverSettings) {
             btnGameoverSettings.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 openWizard(1);
+            });
+            btnGameoverSettings.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
+        if (btnWizardClose) {
+            btnWizardClose.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                closeWizard();
+                if (window.sfx) window.sfx.playClick();
+            });
+            btnWizardClose.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
+        // Close on clicking modal backdrop area
+        if (wizardModal) {
+            wizardModal.addEventListener('click', (e) => {
+                if (e.target === wizardModal) {
+                    closeWizard();
+                }
             });
         }
 
         // Stepper Navigation
         [dotStep1, dotStep2, dotStep3].forEach(dot => {
             if (!dot) return;
-            dot.addEventListener('click', () => {
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const step = parseInt(dot.getAttribute('data-step') || '1', 10);
                 goToWizardStep(step);
             });
+            dot.addEventListener('pointerdown', (e) => e.stopPropagation());
         });
 
         function goToWizardStep(step) {
@@ -521,24 +548,40 @@
         }
 
         // Step 1: Mode Selection
-        if (cardModeFlap) cardModeFlap.addEventListener('click', () => {
-            setGameMode('vocal_flap');
-            if (window.sfx) window.sfx.playClick();
-        });
+        if (cardModeFlap) {
+            cardModeFlap.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setGameMode('vocal_flap');
+                if (window.sfx) window.sfx.playClick();
+            });
+            cardModeFlap.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
-        if (cardModeFloat) cardModeFloat.addEventListener('click', () => {
-            setGameMode('continuous_float');
-            if (window.sfx) window.sfx.playClick();
-        });
+        if (cardModeFloat) {
+            cardModeFloat.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setGameMode('continuous_float');
+                if (window.sfx) window.sfx.playClick();
+            });
+            cardModeFloat.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
-        if (btnWizardNext1) btnWizardNext1.addEventListener('click', () => {
-            goToWizardStep(2);
-        });
+        if (btnWizardNext1) {
+            btnWizardNext1.addEventListener('click', (e) => {
+                e.stopPropagation();
+                goToWizardStep(2);
+            });
+            btnWizardNext1.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
         // Step 2: Mic & Sensitivity
-        if (btnWizardConnectMic) btnWizardConnectMic.addEventListener('click', async () => {
-            await connectMicrophone();
-        });
+        if (btnWizardConnectMic) {
+            btnWizardConnectMic.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await connectMicrophone();
+            });
+            btnWizardConnectMic.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
         async function connectMicrophone() {
             const ok = await window.audioController.initMicrophone();
@@ -575,7 +618,8 @@
         }
 
         presetChips.forEach(chip => {
-            chip.addEventListener('click', () => {
+            chip.addEventListener('click', (e) => {
+                e.stopPropagation();
                 presetChips.forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
                 const preset = chip.getAttribute('data-preset');
@@ -583,33 +627,62 @@
                 syncThresholdUI();
                 if (window.sfx) window.sfx.playClick();
             });
+            chip.addEventListener('pointerdown', (e) => e.stopPropagation());
         });
 
-        if (btnWizardCalibrate) btnWizardCalibrate.addEventListener('click', async () => {
-            calibModal.classList.add('active');
-            calibFill.style.width = '0%';
-            const res = await window.audioController.autoCalibrate(2000, (prog) => {
-                calibFill.style.width = Math.round(prog * 100) + '%';
+        if (btnWizardCalibrate) {
+            btnWizardCalibrate.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                calibModal.classList.add('active');
+                calibFill.style.width = '0%';
+                const res = await window.audioController.autoCalibrate(2000, (prog) => {
+                    calibFill.style.width = Math.round(prog * 100) + '%';
+                });
+                calibModal.classList.remove('active');
+                if (res) {
+                    voiceTestFeedback.innerText = '✅ Auto-Calibrated!';
+                    voiceTestFeedback.style.color = '#4CAF50';
+                    syncThresholdUI();
+                    connectMicrophone();
+                }
             });
-            calibModal.classList.remove('active');
-            if (res) {
-                voiceTestFeedback.innerText = '✅ Auto-Calibrated!';
-                voiceTestFeedback.style.color = '#4CAF50';
-                syncThresholdUI();
-                connectMicrophone();
-            }
-        });
+            btnWizardCalibrate.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
-        if (btnWizardBack2) btnWizardBack2.addEventListener('click', () => goToWizardStep(1));
-        if (btnWizardNext2) btnWizardNext2.addEventListener('click', () => goToWizardStep(3));
-        if (btnWizardBack3) btnWizardBack3.addEventListener('click', () => goToWizardStep(2));
+        if (btnWizardBack2) {
+            btnWizardBack2.addEventListener('click', (e) => {
+                e.stopPropagation();
+                goToWizardStep(1);
+            });
+            btnWizardBack2.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
+        if (btnWizardNext2) {
+            btnWizardNext2.addEventListener('click', (e) => {
+                e.stopPropagation();
+                goToWizardStep(3);
+            });
+            btnWizardNext2.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
+        if (btnWizardBack3) {
+            btnWizardBack3.addEventListener('click', (e) => {
+                e.stopPropagation();
+                goToWizardStep(2);
+            });
+            btnWizardBack3.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
         // Step 3: Launch
-        if (btnWizardLaunch) btnWizardLaunch.addEventListener('click', () => {
-            closeWizard();
-            engine.startGame();
-            if (window.sfx) window.sfx.playHighscore();
-        });
+        if (btnWizardLaunch) {
+            btnWizardLaunch.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeWizard();
+                engine.startGame();
+                if (window.sfx) window.sfx.playHighscore();
+            });
+            btnWizardLaunch.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
         // Top HUD Mic Meter click to open Voice Studio
         if (hudMicMeter) {
@@ -618,6 +691,7 @@
                 e.stopPropagation();
                 openWizard(2);
             });
+            hudMicMeter.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
         // Oscilloscope & Mini Flight Simulator Animation Loop
@@ -834,36 +908,57 @@
         document.addEventListener('fullscreenchange', onFullscreenChange);
         document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
-        if (btnHudFullscreen) btnHudFullscreen.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleFullscreen();
-        });
-        if (btnStartFullscreen) btnStartFullscreen.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleFullscreen();
-        });
+        if (btnHudFullscreen) {
+            btnHudFullscreen.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFullscreen();
+            });
+            btnHudFullscreen.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+        if (btnStartFullscreen) {
+            btnStartFullscreen.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFullscreen();
+            });
+            btnStartFullscreen.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
         // Start / Restart Handlers
         btnStart.addEventListener('click', async (e) => {
+            e.preventDefault();
             e.stopPropagation();
             if (!window.audioController.isListening) {
                 await window.audioController.initMicrophone();
             }
             engine.startGame();
         });
+        btnStart.addEventListener('pointerdown', (e) => e.stopPropagation());
 
         btnRestart.addEventListener('click', async (e) => {
+            e.preventDefault();
             e.stopPropagation();
             if (!window.audioController.isListening) {
                 await window.audioController.initMicrophone();
             }
             engine.startGame();
         });
+        btnRestart.addEventListener('pointerdown', (e) => e.stopPropagation());
 
         // Viewport Touch / Pointer Controls
         const viewport = document.getElementById('viewport');
         viewport.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('#btn-hud-sound') || e.target.closest('#btn-hud-fullscreen') || e.target.closest('#btn-hud-settings') || e.target.closest('.hud-mic-meter') || e.target.closest('#btn-start-fullscreen') || e.target.closest('#btn-start-sound') || e.target.closest('#btn-start-settings')) return;
+            // Ignore any click/touch on buttons, modal elements, cards, and HUD controls
+            if (e.target.closest('button') || 
+                e.target.closest('.mode-card') || 
+                e.target.closest('.skin-chip') || 
+                e.target.closest('.preset-chip') || 
+                e.target.closest('.modal-backdrop') || 
+                e.target.closest('.hud-mic-meter') ||
+                e.target.closest('.hud-actions-group')) {
+                return;
+            }
             
             // Audio unlock on user gesture
             if (window.sfx && window.sfx.ctx && window.sfx.ctx.state === 'suspended') {
@@ -901,7 +996,11 @@
                 return;
             }
             if (e.code === 'KeyS') {
-                openWizard(1);
+                if (wizardModal.classList.contains('active')) {
+                    closeWizard();
+                } else {
+                    openWizard(1);
+                }
                 return;
             }
             if (e.code === 'Escape' && wizardModal.classList.contains('active')) {
@@ -909,6 +1008,7 @@
                 return;
             }
             if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter') {
+                if (wizardModal.classList.contains('active')) return;
                 e.preventDefault();
                 if (window.audioController.mode === 'continuous_float') {
                     if (engine.state === 'MENU' || engine.state === 'GAMEOVER') {
@@ -935,14 +1035,22 @@
             if (btnHudSound) btnHudSound.innerText = isMuted ? '🔇' : '🔊';
             if (btnStartSoundLabel) btnStartSoundLabel.innerText = isMuted ? '🔇 Sound Off' : '🔊 Sound On';
         }
-        if (btnHudSound) btnHudSound.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleSound();
-        });
-        if (btnStartSound) btnStartSound.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleSound();
-        });
+        if (btnHudSound) {
+            btnHudSound.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleSound();
+            });
+            btnHudSound.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+        if (btnStartSound) {
+            btnStartSound.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleSound();
+            });
+            btnStartSound.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
 
         // Skin Selectors in Wizard Step 3
         const allSkinChips = document.querySelectorAll('.skin-chip');
@@ -951,7 +1059,8 @@
         const skinSelectedName = document.getElementById('skin-selected-name');
 
         allSkinChips.forEach(chip => {
-            chip.addEventListener('click', () => {
+            chip.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const skinKey = chip.getAttribute('data-skin');
                 allSkinChips.forEach(c => {
                     c.classList.toggle('active', c.getAttribute('data-skin') === skinKey);
@@ -965,6 +1074,7 @@
                 }
                 if (window.sfx) window.sfx.playClick();
             });
+            chip.addEventListener('pointerdown', (e) => e.stopPropagation());
         });
     });
 </script>

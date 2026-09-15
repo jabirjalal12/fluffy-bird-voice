@@ -11,6 +11,39 @@
 </head>
 <body>
 
+<!-- ============================================== -->
+<!-- Animated Opening Loading Screen -->
+<!-- ============================================== -->
+<div class="loading-screen active" id="loading-screen">
+    <div class="loading-content">
+        <div class="loading-bird-anim">
+            <div class="loading-egg">🥚</div>
+            <div class="loading-bird">🐥</div>
+            <div class="loading-sparkle s1">✨</div>
+            <div class="loading-sparkle s2">⭐</div>
+            <div class="loading-sparkle s3">💫</div>
+        </div>
+
+        <h1 class="loading-title animated-rainbow-text">FLUFFY BIRD</h1>
+        <div class="loading-subtitle">🎙️ Voice Controlled Arcade</div>
+
+        <!-- Developer Credit Badge -->
+        <div class="dev-credit-pill">
+            <span class="dev-star">✨</span>
+            <span>Developed by <strong>Jabir Jalal</strong></span>
+        </div>
+
+        <!-- Loading Progress Bar -->
+        <div class="loading-bar-wrapper">
+            <div class="loading-bar-fill" id="loading-bar-fill"></div>
+        </div>
+        <div class="loading-status-row">
+            <span id="loading-status-text">Initializing game engine...</span>
+            <span id="loading-pct-text">0%</span>
+        </div>
+    </div>
+</div>
+
 <div class="app-wrapper" id="app-wrapper">
     <!-- Game Viewport (Expands seamlessly to Mobile / Fullscreen) -->
     <div class="game-viewport" id="viewport">
@@ -84,6 +117,11 @@
             <p class="start-hint-text" id="start-hint-text">
                 Shout "JUMP!" or tap / press Space to fly! Speed accelerates over time.
             </p>
+
+            <!-- Permanent Developer Credit Badge on Start Menu -->
+            <div class="menu-dev-credit">
+                <span>✨ Developed by <strong>Jabir Jalal</strong></span>
+            </div>
         </div>
 
         <!-- Game Over Screen Overlay -->
@@ -119,6 +157,10 @@
                     <button class="btn-primary" id="btn-restart-game" style="flex: 2; justify-content: center; margin: 0;">
                         <span>🔄 PLAY AGAIN</span>
                     </button>
+                </div>
+
+                <div class="gameover-dev-credit">
+                    <span>Fluffy Bird • Developed by <strong>Jabir Jalal</strong></span>
                 </div>
             </div>
         </div>
@@ -191,6 +233,10 @@
                         <span>Next: Microphone & Voice Studio</span>
                         <span>➡️</span>
                     </button>
+                </div>
+
+                <div class="wizard-dev-credit">
+                    <span>Fluffy Bird • Developed by <strong>Jabir Jalal</strong></span>
                 </div>
             </div>
 
@@ -360,6 +406,47 @@
         const engine = new GameEngine('game-canvas');
         engine.start();
 
+        // Loading Screen Animation
+        const loadingScreen = document.getElementById('loading-screen');
+        const loadingFill = document.getElementById('loading-bar-fill');
+        const loadingStatusText = document.getElementById('loading-status-text');
+        const loadingPctText = document.getElementById('loading-pct-text');
+
+        let loadProgress = 0;
+        const loadingSteps = [
+            { pct: 25, text: "Initializing Web Audio Synthesizer..." },
+            { pct: 55, text: "Calibrating Vocal Frequency Filters..." },
+            { pct: 85, text: "Generating Fluffy Plumage & Skies..." },
+            { pct: 100, text: "Ready to Fly!" }
+        ];
+
+        let stepIndex = 0;
+        const loadTimer = setInterval(() => {
+            if (stepIndex < loadingSteps.length) {
+                const step = loadingSteps[stepIndex];
+                loadProgress = step.pct;
+                if (loadingFill) loadingFill.style.width = `${loadProgress}%`;
+                if (loadingPctText) loadingPctText.innerText = `${loadProgress}%`;
+                if (loadingStatusText) loadingStatusText.innerText = step.text;
+                stepIndex++;
+            } else {
+                clearInterval(loadTimer);
+                setTimeout(() => {
+                    if (loadingScreen) {
+                        loadingScreen.classList.add('fade-out');
+                        setTimeout(() => {
+                            loadingScreen.classList.remove('active');
+                            // Check if first-time user
+                            const hasCompletedOnboarding = localStorage.getItem('fluffy_onboarding_done');
+                            if (!hasCompletedOnboarding) {
+                                openWizard(1);
+                            }
+                        }, 400);
+                    }
+                }, 300);
+            }
+        }, 280);
+
         // UI References
         const btnStart = document.getElementById('btn-start-game');
         const btnStartText = document.getElementById('btn-start-text');
@@ -426,23 +513,12 @@
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 600);
         if (isTouchDevice) {
             document.body.classList.add('touch-device');
-            if (btnStartText) btnStartText.innerText = 'TAP OR SAY "JUMP!"';
-            if (startHintText) startHintText.innerHTML = 'Shout <strong>"JUMP!"</strong> or <strong>TAP</strong> anywhere to fly! Speed accelerates over time.';
+            if (btnStartText) btnStartText.innerText = 'TAP "PLAY GAME" OR SAY "JUMP!"';
+            if (startHintText) startHintText.innerHTML = 'Press <strong>PLAY GAME</strong>, then shout <strong>"JUMP!"</strong> or <strong>TAP</strong> to fly!';
         } else {
             document.body.classList.add('desktop-device');
-            if (btnStartText) btnStartText.innerText = 'SAY "JUMP!" OR PRESS SPACE';
-            if (startHintText) startHintText.innerHTML = 'Shout <strong>"JUMP!"</strong> or press <kbd>Space</kbd> / <kbd>▲</kbd> to fly! Press <kbd>F</kbd> for Fullscreen, <kbd>S</kbd> for Settings.';
-        }
-
-        // Check if user should see setup modal on launch
-        const hasCompletedOnboarding = localStorage.getItem('fluffy_onboarding_done');
-        if (!hasCompletedOnboarding) {
-            setTimeout(() => {
-                openWizard(1);
-            }, 300);
-        } else {
-            // Auto connect mic if already onboarded
-            window.audioController.initMicrophone();
+            if (btnStartText) btnStartText.innerText = 'PLAY GAME';
+            if (startHintText) startHintText.innerHTML = 'Press <strong>PLAY GAME</strong> or <kbd>Space</kbd> to fly! Use <kbd>F</kbd> for Fullscreen, <kbd>S</kbd> for Settings.';
         }
 
         function openWizard(step = 1) {
@@ -843,7 +919,7 @@
                     meterLabel.innerText = isTriggered ? 'VOICE!' : (pct > 0 ? `${pct}%` : 'Listening');
                 }
             } else {
-                meterLabel.innerText = 'Tap Mic';
+                meterLabel.innerText = 'Ready';
             }
 
             // Wizard Live Voice Test Bar
@@ -925,7 +1001,7 @@
             btnStartFullscreen.addEventListener('pointerdown', (e) => e.stopPropagation());
         }
 
-        // Start / Restart Handlers
+        // Explicit Start & Restart Handlers
         btnStart.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -949,7 +1025,7 @@
         // Viewport Touch / Pointer Controls
         const viewport = document.getElementById('viewport');
         viewport.addEventListener('pointerdown', (e) => {
-            // Ignore any click/touch on buttons, modal elements, cards, and HUD controls
+            // Never start game from generic clicks on UI buttons, cards or backdrop
             if (e.target.closest('button') || 
                 e.target.closest('.mode-card') || 
                 e.target.closest('.skin-chip') || 
@@ -968,13 +1044,13 @@
                 window.audioController.audioCtx.resume();
             }
 
-            if (window.audioController.mode === 'continuous_float') {
-                if (engine.state === 'MENU' || engine.state === 'GAMEOVER') {
-                    engine.startGame();
+            // Only flap if actively playing
+            if (engine.state === 'PLAYING') {
+                if (window.audioController.mode === 'continuous_float') {
+                    engine.isManualFloating = true;
+                } else {
+                    engine.handleInputFlap();
                 }
-                engine.isManualFloating = true;
-            } else {
-                engine.handleInputFlap();
             }
         });
 
@@ -1009,14 +1085,19 @@
             }
             if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter') {
                 if (wizardModal.classList.contains('active')) return;
-                e.preventDefault();
-                if (window.audioController.mode === 'continuous_float') {
-                    if (engine.state === 'MENU' || engine.state === 'GAMEOVER') {
-                        engine.startGame();
+                
+                if (engine.state === 'MENU') {
+                    e.preventDefault();
+                    engine.startGame();
+                    return;
+                }
+                if (engine.state === 'PLAYING') {
+                    e.preventDefault();
+                    if (window.audioController.mode === 'continuous_float') {
+                        engine.isManualFloating = true;
+                    } else {
+                        engine.handleInputFlap();
                     }
-                    engine.isManualFloating = true;
-                } else {
-                    engine.handleInputFlap();
                 }
             }
         });

@@ -1427,3 +1427,178 @@ body.fullscreen-active #game-canvas {
     max-height: 100%;
     object-fit: contain;
 }
+
+/* ======================================================= */
+/* Animated Opening Loading Screen */
+/* ======================================================= */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 40%, #1e1b4b 0%, #0f172a 100%);
+    z-index: 20000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.loading-screen.fade-out {
+    opacity: 0;
+    transform: scale(1.05);
+    pointer-events: none;
+}
+
+.loading-screen:not(.active) {
+    display: none;
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    max-width: 360px;
+    width: 100%;
+}
+
+.loading-bird-anim {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.loading-bird {
+    font-size: 52px;
+    animation: loadingBirdBounce 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes loadingBirdBounce {
+    0% { transform: translateY(0) scale(0.95); }
+    100% { transform: translateY(-14px) scale(1.08); }
+}
+
+.loading-sparkle {
+    position: absolute;
+    font-size: 20px;
+    animation: sparklePulse 1.8s infinite ease-in-out;
+}
+
+.loading-sparkle.s1 { top: -6px; left: 6px; animation-delay: 0.2s; }
+.loading-sparkle.s2 { top: 0px; right: 2px; animation-delay: 0.7s; }
+.loading-sparkle.s3 { bottom: 0px; left: 10px; animation-delay: 1.1s; }
+
+@keyframes sparklePulse {
+    0% { transform: scale(0.6) rotate(0deg); opacity: 0.3; }
+    50% { transform: scale(1.3) rotate(25deg); opacity: 1; }
+    100% { transform: scale(0.6) rotate(0deg); opacity: 0.3; }
+}
+
+.loading-title {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+
+.loading-subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 12px;
+}
+
+/* Developer Credit Badges */
+.dev-credit-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #ffd1dc;
+    margin-bottom: 22px;
+    box-shadow: 0 0 20px rgba(255, 92, 138, 0.25);
+    animation: devPillGlow 3s infinite alternate ease-in-out;
+}
+
+@keyframes devPillGlow {
+    0% { border-color: rgba(255, 92, 138, 0.4); box-shadow: 0 0 12px rgba(255, 92, 138, 0.2); }
+    100% { border-color: rgba(76, 201, 240, 0.6); box-shadow: 0 0 22px rgba(76, 201, 240, 0.4); }
+}
+
+.dev-credit-pill strong {
+    color: #ffffff;
+    letter-spacing: 0.3px;
+}
+
+.loading-bar-wrapper {
+    width: 240px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff5c8a, #ffbe0b, #4cc9f0);
+    border-radius: 8px;
+    transition: width 0.28s ease-out;
+    box-shadow: 0 0 12px #ff5c8a;
+}
+
+.loading-status-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.65);
+    width: 240px;
+}
+
+.menu-dev-credit {
+    margin-top: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #444;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 16px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #ffd1dc;
+}
+
+.menu-dev-credit strong {
+    color: #ff5c8a;
+}
+
+.gameover-dev-credit {
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #777;
+    text-align: center;
+}
+
+.gameover-dev-credit strong {
+    color: #ff5c8a;
+}
+
+.wizard-dev-credit {
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ff5c8a;
+    text-align: center;
+}
+

@@ -77,8 +77,6 @@ class GameEngine {
             window.audioController.onFlap = (vol) => {
                 if (this.state === 'PLAYING') {
                     this.bird.flap(1.0);
-                } else if (this.state === 'MENU') {
-                    this.startGame();
                 }
             };
         }
@@ -127,12 +125,8 @@ class GameEngine {
     }
 
     handleInputFlap() {
-        if (this.state === 'MENU') {
-            this.startGame();
-        } else if (this.state === 'PLAYING') {
+        if (this.state === 'PLAYING') {
             this.bird.flap(1.0);
-        } else if (this.state === 'GAMEOVER') {
-            this.startGame();
         }
     }
 

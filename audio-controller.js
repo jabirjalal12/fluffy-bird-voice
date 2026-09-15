@@ -8,6 +8,7 @@ class AudioController {
         this.analyser = null;
         this.microphone = null;
         this.dataArray = null;
+        this.freqArray = null;
         this.isListening = false;
         this.isCalibrating = false;
 
@@ -21,6 +22,7 @@ class AudioController {
         // Runtime state
         this.currentVolume = 0;
         this.smoothedVolume = 0;
+        this.rawRms = 0;
         this.lastFlapTime = 0;
         this.flapCooldownMs = 180; // Minimum time between consecutive voice flap triggers
         this.hasTriggeredInCurrentBurst = false;
@@ -32,7 +34,9 @@ class AudioController {
     }
 
     async initMicrophone() {
-        if (this.isListening) return true;
+        if (this.isListening && this.audioCtx && this.audioCtx.state === 'running') {
+            return true;
+        }
 
         try {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -40,7 +44,9 @@ class AudioController {
                 throw new Error("Web Audio API is not supported in this browser.");
             }
 
-            this.audioCtx = new AudioCtx();
+            if (!this.audioCtx) {
+                this.audioCtx = new AudioCtx();
+            }
             if (this.audioCtx.state === 'suspended') {
                 await this.audioCtx.resume();
             }
@@ -56,16 +62,18 @@ class AudioController {
             this.microphone = this.audioCtx.createMediaStreamSource(stream);
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 512;
-            this.analyser.smoothingTimeConstant = 0.3;
+            this.analyser.smoothingTimeConstant = 0.2;
 
             this.microphone.connect(this.analyser);
             this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+            this.freqArray = new Uint8Array(this.analyser.frequencyBinCount);
 
             this.isListening = true;
             this.startAnalysisLoop();
             return true;
         } catch (err) {
             console.error("Microphone access error:", err);
+            this.isListening = false;
             if (this.onError) {
                 this.onError(err);
             }
@@ -74,18 +82,20 @@ class AudioController {
     }
 
     startAnalysisLoop() {
+        if (this._loopRunning) return;
+        this._loopRunning = true;
+
         const update = () => {
-            if (!this.isListening) return;
+            if (this.isListening) {
+                this.analyzeAudio();
 
-            this.analyzeAudio();
-
-            if (this.onLevelUpdate) {
-                const isTriggered = this.mode === 'vocal_flap' 
-                    ? this.smoothedVolume >= this.threshold 
-                    : this.smoothedVolume > this.noiseFloor;
-                this.onLevelUpdate(this.smoothedVolume, this.threshold, isTriggered);
+                if (this.onLevelUpdate) {
+                    const isTriggered = this.mode === 'vocal_flap' 
+                        ? this.smoothedVolume >= this.threshold 
+                        : this.smoothedVolume > this.noiseFloor;
+                    this.onLevelUpdate(this.smoothedVolume, this.threshold, isTriggered, this.currentVolume, this.rawRms);
+                }
             }
-
             requestAnimationFrame(update);
         };
         requestAnimationFrame(update);
@@ -103,13 +113,14 @@ class AudioController {
             sumSquares += normalized * normalized;
         }
         const rms = Math.sqrt(sumSquares / this.dataArray.length);
+        this.rawRms = rms;
 
-        // Apply noise floor deduction and sensitivity multiplier
-        let rawVolume = Math.max(0, rms - this.noiseFloor) * (this.sensitivity * 4.2);
+        // Apply noise floor deduction and sensitivity multiplier (responsive 5.0x multiplier)
+        let rawVolume = Math.max(0, rms - this.noiseFloor) * (this.sensitivity * 5.0);
         rawVolume = Math.min(1.0, rawVolume);
 
         // Faster responsiveness in continuous float mode, smoother in vocal flap mode
-        const currentSmoothing = this.mode === 'continuous_float' ? 0.58 : 0.78;
+        const currentSmoothing = this.mode === 'continuous_float' ? 0.55 : 0.72;
         this.smoothedVolume = (this.smoothedVolume * currentSmoothing) + (rawVolume * (1 - currentSmoothing));
         this.currentVolume = rawVolume;
 
@@ -186,9 +197,9 @@ class AudioController {
                     const max = Math.max(...samples, 0.01);
 
                     // Set noise floor just above max ambient
-                    this.noiseFloor = Math.min(0.15, Math.max(0.015, avg * 1.3));
+                    this.noiseFloor = Math.min(0.12, Math.max(0.015, avg * 1.25));
                     // Set threshold comfortably above ambient noise
-                    this.threshold = Math.min(0.7, Math.max(0.12, max * 2.2 + 0.08));
+                    this.threshold = Math.min(0.65, Math.max(0.12, max * 2.2 + 0.06));
 
                     resolve({
                         avgAmbient: avg,
@@ -211,11 +222,11 @@ class AudioController {
 
     setSensitivityPreset(preset) {
         if (preset === 'quiet') {
-            this.sensitivity = 1.35;
-            this.threshold = 0.16;
+            this.sensitivity = 1.45;
+            this.threshold = 0.15;
         } else if (preset === 'noisy') {
-            this.sensitivity = 0.85;
-            this.threshold = 0.26;
+            this.sensitivity = 0.75;
+            this.threshold = 0.28;
         } else {
             // 'normal'
             this.sensitivity = 1.0;

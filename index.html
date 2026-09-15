@@ -8,8 +8,8 @@
 </head>
 <body>
 
-<div class="app-wrapper">
-    <!-- Game Viewport -->
+<div class="app-wrapper" id="app-wrapper">
+    <!-- Game Viewport (Expands to Fullscreen) -->
     <div class="game-viewport" id="viewport">
         <canvas id="game-canvas"></canvas>
 
@@ -33,7 +33,10 @@
                 <span>⚡</span>
                 <span id="speed-text">1.0x</span>
             </div>
-            <button class="btn-secondary" id="btn-hud-sound" title="Toggle Sound">🔊</button>
+            <div class="hud-actions-group">
+                <button class="btn-secondary btn-icon-only" id="btn-hud-fullscreen" title="Toggle Fullscreen (F)">⛶</button>
+                <button class="btn-secondary btn-icon-only" id="btn-hud-sound" title="Toggle Sound (M)">🔊</button>
+            </div>
         </div>
 
         <!-- Menu / Start Screen Overlay -->
@@ -59,12 +62,17 @@
                 <span>SAY "JUMP!" OR TAP TO PLAY</span>
             </button>
 
-            <button class="btn-setup-link" id="btn-open-wizard-start">
-                <span>⚙️ Mode & Mic Setup Wizard</span>
-            </button>
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <button class="btn-secondary" id="btn-start-fullscreen">
+                    <span>⛶ Fullscreen</span>
+                </button>
+                <button class="btn-secondary" id="btn-open-wizard-start">
+                    <span>⚙️ Setup Wizard</span>
+                </button>
+            </div>
 
             <p class="start-hint-text">
-                Shout or hum into your microphone to fly! Speed continuously accelerates as you survive longer.
+                Shout or hum into your microphone to fly! Speed constantly accelerates as you survive longer.
             </p>
         </div>
 
@@ -102,8 +110,8 @@
         </div>
     </div>
 
-    <!-- Side Control & Customization Panel (Publishable Arcade Edition) -->
-    <div class="sidebar-panel">
+    <!-- Side Control & Customization Panel -->
+    <div class="sidebar-panel" id="sidebar-panel">
         <!-- Quick Setup & Calibration Action -->
         <div class="panel-section highlight-section">
             <div class="panel-title">
@@ -113,9 +121,14 @@
             <p style="font-size: 12px; color: #555; margin-bottom: 10px; line-height: 1.4;">
                 First time playing? Customize flight mode, microphone sensitivity & test your voice.
             </p>
-            <button class="btn-primary" id="btn-open-wizard" style="width: 100%; font-size: 15px; padding: 10px 18px; margin: 0; justify-content: center;">
-                <span>⚙️ Launch Setup Wizard</span>
-            </button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-primary" id="btn-open-wizard" style="flex: 2; font-size: 14px; padding: 10px 14px; margin: 0; justify-content: center;">
+                    <span>⚙️ Setup Wizard</span>
+                </button>
+                <button class="btn-secondary" id="btn-side-fullscreen" style="flex: 1; font-size: 13px; padding: 10px 12px; text-align: center;">
+                    <span>⛶ Fullscreen</span>
+                </button>
+            </div>
         </div>
 
         <!-- Voice Flight Mode Section -->
@@ -205,12 +218,12 @@
         <div class="panel-section">
             <div class="panel-title">
                 <span>💡</span>
-                <span>Controls & Tips</span>
+                <span>Controls & Shortcuts</span>
             </div>
             <ul class="tips-list">
-                <li>Vocalize into your mic to fly. Speed accelerates constantly over time!</li>
-                <li>Collect spinning <strong>⭐ Golden Stars</strong> for +3 bonus points.</li>
-                <li><strong>Keyboard / Mouse:</strong> Spacebar, Up Arrow, or Clicking the canvas also controls flight.</li>
+                <li><strong>Voice:</strong> Speak/hum into microphone to fly.</li>
+                <li><strong>Fullscreen:</strong> Press <strong>F</strong> or click <strong>⛶</strong>.</li>
+                <li><strong>Keyboard:</strong> Spacebar / Up Arrow to flap.</li>
             </ul>
         </div>
     </div>
@@ -233,8 +246,6 @@
         <!-- STEP 1: Flight Mode Selection -->
         <div class="wizard-page active" id="wizard-page-1">
             <div class="wizard-hero-anim">
-                <div class="floating-feather-particle"></div>
-                <div class="floating-feather-particle f2"></div>
                 <div class="wizard-bird-preview">🐥</div>
             </div>
             <h3 class="wizard-title">Welcome to Fluffy Bird!</h3>
@@ -265,33 +276,45 @@
         <!-- STEP 2: Microphone Permission & Live Sensitivity -->
         <div class="wizard-page" id="wizard-page-2">
             <h3 class="wizard-title">🎙️ Microphone Setup</h3>
-            <p class="wizard-subtitle">Connect your mic and test your voice sensitivity:</p>
+            <p class="wizard-subtitle">Grant mic permission and test your voice volume:</p>
 
             <div class="wizard-mic-status-card" id="wizard-mic-card">
                 <div class="mic-status-indicator" id="wizard-mic-indicator">
                     <span id="wizard-mic-icon">🎤</span>
-                    <span id="wizard-mic-text">Microphone Not Connected</span>
+                    <span id="wizard-mic-text">Click below to allow microphone access</span>
                 </div>
-                <button class="btn-primary" id="btn-wizard-connect-mic" style="margin: 8px auto; padding: 10px 24px; font-size: 15px;">
-                    <span>Grant Mic Permission</span>
+                <button class="btn-primary btn-pulsate" id="btn-wizard-connect-mic" style="margin: 10px auto 4px auto; padding: 10px 24px; font-size: 15px;">
+                    <span>Grant Microphone Permission</span>
                 </button>
             </div>
 
-            <!-- Live Voice Test Visualizer -->
+            <!-- Live Voice Test Visualizer Box -->
             <div class="voice-test-box">
                 <div class="voice-test-header">
                     <span>Live Voice Test Bar</span>
-                    <span id="voice-test-feedback">Speak to test...</span>
+                    <span id="voice-test-feedback">Click 'Grant Microphone' above</span>
                 </div>
                 <div class="voice-test-track">
                     <div class="voice-test-fill" id="voice-test-fill"></div>
                     <div class="voice-test-threshold" style="left: 20%;"></div>
                 </div>
+
+                <!-- Animated Equalizer Waveform Bars -->
+                <div class="voice-eq-bars" id="voice-eq-bars">
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                </div>
             </div>
 
             <!-- Sensitivity Presets -->
             <div class="sensitivity-presets-group">
-                <span class="preset-title">Room Noise Preset:</span>
+                <span class="preset-title">Room Sensitivity Preset:</span>
                 <div class="preset-chips-row">
                     <button class="preset-chip" data-preset="quiet">🤫 Quiet Room</button>
                     <button class="preset-chip active" data-preset="normal">🎙️ Normal (Balanced)</button>
@@ -299,7 +322,7 @@
                 </div>
             </div>
 
-            <button class="btn-secondary" id="btn-wizard-calibrate" style="width: 100%; margin: 8px 0 16px 0;">
+            <button class="btn-secondary" id="btn-wizard-calibrate" style="width: 100%; margin: 6px 0 14px 0;">
                 <span>🎯 2-Second Ambient Auto-Calibrate</span>
             </button>
 
@@ -343,8 +366,8 @@
             </div>
 
             <div class="launch-tip-card">
-                <span style="font-size: 20px;">⚡</span>
-                <p>The game accelerates over time! Collect spinning <strong>⭐ Golden Stars</strong> for bonus score.</p>
+                <span style="font-size: 22px;">⚡</span>
+                <p>Speed accelerates constantly over time! Grab <strong>⭐ Golden Stars</strong> for bonus score.</p>
             </div>
 
             <div class="wizard-nav-buttons split" style="margin-top: 14px;">
@@ -386,6 +409,9 @@
         const btnStart = document.getElementById('btn-start-game');
         const btnRestart = document.getElementById('btn-restart-game');
         const btnHudSound = document.getElementById('btn-hud-sound');
+        const btnHudFullscreen = document.getElementById('btn-hud-fullscreen');
+        const btnSideFullscreen = document.getElementById('btn-side-fullscreen');
+        const btnStartFullscreen = document.getElementById('btn-start-fullscreen');
         const btnCalibrate = document.getElementById('btn-calibrate');
         const btnTestMic = document.getElementById('btn-test-mic');
         
@@ -427,6 +453,7 @@
         const btnWizardConnectMic = document.getElementById('btn-wizard-connect-mic');
         const voiceTestFill = document.getElementById('voice-test-fill');
         const voiceTestFeedback = document.getElementById('voice-test-feedback');
+        const voiceEqBars = document.querySelectorAll('.eq-bar');
         const presetChips = document.querySelectorAll('.preset-chip');
         const btnWizardCalibrate = document.getElementById('btn-wizard-calibrate');
 
@@ -459,6 +486,11 @@
             } else if (step === 2) {
                 page2.classList.add('active');
                 dotStep2.classList.add('active');
+                if (window.audioController.isListening) {
+                    updateMicStatusCard(true);
+                } else {
+                    connectMicrophone();
+                }
             } else if (step === 3) {
                 page3.classList.add('active');
                 dotStep3.classList.add('active');
@@ -475,23 +507,17 @@
 
         // Step 1: Mode Selection
         cardModeFlap.addEventListener('click', () => {
-            cardModeFlap.classList.add('active');
-            cardModeFloat.classList.remove('active');
             setGameMode('vocal_flap');
             if (window.sfx) window.sfx.playClick();
         });
 
         cardModeFloat.addEventListener('click', () => {
-            cardModeFloat.classList.add('active');
-            cardModeFlap.classList.remove('active');
             setGameMode('continuous_float');
             if (window.sfx) window.sfx.playClick();
         });
 
         btnWizardNext1.addEventListener('click', () => {
             goToWizardStep(2);
-            // Attempt mic connect automatically on step 2
-            connectMicrophone();
         });
 
         // Step 2: Mic & Sensitivity
@@ -501,7 +527,12 @@
 
         async function connectMicrophone() {
             const ok = await window.audioController.initMicrophone();
-            if (ok) {
+            updateMicStatusCard(ok);
+            return ok;
+        }
+
+        function updateMicStatusCard(isConnected) {
+            if (isConnected) {
                 wizardMicIcon.innerText = '✅';
                 wizardMicText.innerText = 'Microphone Connected & Active!';
                 wizardMicCard.classList.add('connected');
@@ -509,6 +540,15 @@
                 btnTestMic.innerText = '✅ Mic Connected';
                 btnTestMic.style.borderColor = '#4CAF50';
                 meterLabel.innerText = 'Listening';
+                voiceTestFeedback.innerText = '👂 Listening... Speak into your mic!';
+                voiceTestFeedback.style.color = '#4CAF50';
+            } else {
+                wizardMicIcon.innerText = '🎤';
+                wizardMicText.innerText = 'Click below to allow microphone access';
+                wizardMicCard.classList.remove('connected');
+                btnWizardConnectMic.style.display = 'inline-flex';
+                voiceTestFeedback.innerText = '⚠️ Click Grant Microphone above';
+                voiceTestFeedback.style.color = '#888';
             }
         }
 
@@ -547,8 +587,8 @@
             if (window.sfx) window.sfx.playHighscore();
         });
 
-        // Live Audio Level Updates
-        window.audioController.onLevelUpdate = (vol, threshold, isTriggered) => {
+        // Live Audio Level Updates (Both Top HUD + Wizard Voice Test Bar)
+        window.audioController.onLevelUpdate = (vol, threshold, isTriggered, rawVol, rawRms) => {
             const pct = Math.min(100, Math.round(vol * 100));
             meterFill.style.width = pct + '%';
             
@@ -570,22 +610,34 @@
                 }
             }
 
-            // Wizard Live Voice Test Bar
-            if (voiceTestFill) {
-                voiceTestFill.style.width = pct + '%';
-                if (pct > 15) {
-                    voiceTestFeedback.innerText = '🎉 Voice Detected! Loud & Clear';
+            // Wizard Live Voice Test Bar & Equalizer
+            if (voiceTestFill && wizardModal.classList.contains('active')) {
+                // Responsive test bar (high sensitivity display)
+                const displayPct = Math.min(100, Math.max(0, Math.round((rawVol || vol) * 100)));
+                voiceTestFill.style.width = displayPct + '%';
+
+                // Animate EQ bars
+                if (voiceEqBars.length > 0) {
+                    voiceEqBars.forEach((bar, idx) => {
+                        const wave = Math.sin(performance.now() * 0.015 + idx * 0.8);
+                        const h = displayPct > 5 ? Math.min(28, Math.max(4, (displayPct * 0.35) * (0.6 + 0.4 * wave))) : 4;
+                        bar.style.height = `${h}px`;
+                    });
+                }
+
+                if (displayPct > 15) {
+                    voiceTestFeedback.innerText = `🎉 Voice Detected! (${displayPct}%)`;
                     voiceTestFeedback.style.color = '#ff5c8a';
-                } else {
-                    voiceTestFeedback.innerText = 'Speak or hum to test...';
-                    voiceTestFeedback.style.color = '#888';
+                } else if (window.audioController.isListening) {
+                    voiceTestFeedback.innerText = '👂 Listening... Speak into your mic!';
+                    voiceTestFeedback.style.color = '#4CAF50';
                 }
             }
         };
 
         window.audioController.onError = (err) => {
             meterLabel.innerText = 'Mic Off';
-            wizardMicText.innerText = 'Microphone Access Denied (Click to Retry)';
+            updateMicStatusCard(false);
         };
 
         function setGameMode(mode) {
@@ -610,6 +662,38 @@
         modeFlap.addEventListener('click', () => setGameMode('vocal_flap'));
         modeFloat.addEventListener('click', () => setGameMode('continuous_float'));
 
+        // Fullscreen Toggle Handlers
+        function toggleFullscreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                const docEl = document.documentElement;
+                if (docEl.requestFullscreen) docEl.requestFullscreen();
+                else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        }
+
+        function onFullscreenChange() {
+            const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+            document.body.classList.toggle('fullscreen-active', isFull);
+            if (btnHudFullscreen) btnHudFullscreen.innerText = isFull ? '🗗' : '⛶';
+            if (btnSideFullscreen) btnSideFullscreen.innerText = isFull ? '🗗 Exit Fullscreen' : '⛶ Fullscreen Mode';
+        }
+
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+        if (btnHudFullscreen) btnHudFullscreen.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFullscreen();
+        });
+        if (btnSideFullscreen) btnSideFullscreen.addEventListener('click', toggleFullscreen);
+        if (btnStartFullscreen) btnStartFullscreen.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFullscreen();
+        });
+
         // Start / Restart
         btnStart.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -624,7 +708,7 @@
         // Click / Touch on viewport (Supports tap flap and hold-to-float)
         const viewport = document.getElementById('viewport');
         viewport.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('#btn-hud-sound') || e.target.closest('.hud-mic-meter')) return;
+            if (e.target.closest('#btn-hud-sound') || e.target.closest('#btn-hud-fullscreen') || e.target.closest('.hud-mic-meter')) return;
             if (window.audioController.mode === 'continuous_float') {
                 if (engine.state === 'MENU' || engine.state === 'GAMEOVER') {
                     engine.startGame();
@@ -642,8 +726,16 @@
             engine.isManualFloating = false;
         });
 
-        // Keyboard Controls (Supports tap flap and hold-to-float)
+        // Keyboard Controls (Supports tap flap, hold-to-float, and F for Fullscreen)
         window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyF') {
+                toggleFullscreen();
+                return;
+            }
+            if (e.code === 'KeyM') {
+                toggleSound();
+                return;
+            }
             if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
                 e.preventDefault();
                 if (window.audioController.mode === 'continuous_float') {
@@ -665,11 +757,14 @@
 
         // Sound Toggle
         let isMuted = false;
-        btnHudSound.addEventListener('click', (e) => {
-            e.stopPropagation();
+        function toggleSound() {
             isMuted = !isMuted;
             if (window.sfx) window.sfx.enabled = !isMuted;
-            btnHudSound.innerText = isMuted ? '🔇' : '🔊';
+            if (btnHudSound) btnHudSound.innerText = isMuted ? '🔇' : '🔊';
+        }
+        btnHudSound.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSound();
         });
 
         // Enable Mic Button

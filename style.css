@@ -457,7 +457,7 @@ body {
     width: 0%;
     background: linear-gradient(90deg, #4cc9f0, #ff6b8b);
     border-radius: 6px;
-    transition: width 0.05s linear;
+    /* No CSS transition — JS RAF drives this every frame for zero-lag live metering */
 }
 
 .meter-fill.triggered {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -402,6 +402,21 @@
     window.addEventListener('DOMContentLoaded', () => {
         const engine = new GameEngine('game-canvas');
         engine.start();
+
+        // Auto-init microphone on first user gesture (browser security requirement)
+        let micAutoInitDone = false;
+        async function autoInitMic() {
+            if (micAutoInitDone) return;
+            micAutoInitDone = true;
+            // Resume AudioContext (needed on mobile/Chrome after user gesture)
+            if (window.audioController.audioCtx && window.audioController.audioCtx.state === 'suspended') {
+                await window.audioController.audioCtx.resume();
+            }
+            await window.audioController.initMicrophone();
+        }
+        ['pointerdown','keydown','touchstart'].forEach(evt => {
+            document.addEventListener(evt, autoInitMic, { once: true, passive: true });
+        });
 
         // Loading Screen Animation
         const loadingScreen = document.getElementById('loading-screen');
@@ -944,50 +959,68 @@
             requestAnimationFrame(renderOsc);
         }
 
-        // Live Audio Level Updates
+        // Live Audio Level Updates — fires every RAF frame from audio-controller
         window.audioController.onLevelUpdate = (vol, threshold, isTriggered, rawVol, rawRms) => {
-            const pct = Math.min(100, Math.round(vol * 100));
-            meterFill.style.width = pct + '%';
-            
-            // HUD Meter
+            // Use raw (instant) volume for the bar — it's more responsive than smoothed
+            const displayVol = Math.max(vol, rawVol);
+            const pct = Math.min(100, Math.round(displayVol * 100));
+            if (meterFill) meterFill.style.width = pct + '%';
+
+            // Threshold needle position (keep in sync with current threshold)
+            const thPct = Math.round(threshold * 100);
+            if (meterThresholdLine) meterThresholdLine.style.left = thPct + '%';
+
+            // HUD color & icon pulse
             if (isTriggered) {
-                meterFill.classList.add('triggered');
-                micIcon.classList.add('active');
+                if (meterFill) meterFill.classList.add('triggered');
+                if (micIcon) micIcon.classList.add('active');
             } else {
-                meterFill.classList.remove('triggered');
-                micIcon.classList.remove('active');
+                if (meterFill) meterFill.classList.remove('triggered');
+                if (micIcon) micIcon.classList.remove('active');
             }
 
+            // HUD label
             if (window.audioController.isListening) {
                 if (window.audioController.mode === 'continuous_float') {
                     const intensityPct = Math.round(window.audioController.getCurrentIntensity() * 100);
-                    meterLabel.innerText = intensityPct > 5 ? `FLOAT ${intensityPct}%` : 'Hum...';
+                    if (meterLabel) meterLabel.innerText = intensityPct > 5 ? `FLOAT ${intensityPct}%` : 'Hum...';
                 } else {
-                    meterLabel.innerText = isTriggered ? 'VOICE!' : (pct > 0 ? `${pct}%` : 'Listening');
+                    if (meterLabel) meterLabel.innerText = isTriggered ? 'VOICE!' : (pct > 2 ? `${pct}%` : 'Listening');
                 }
             } else {
-                meterLabel.innerText = 'Ready';
+                if (meterLabel) meterLabel.innerText = 'Ready';
             }
 
-            // Wizard Live Voice Test Bar
-            if (voiceTestFill && wizardModal.classList.contains('active')) {
-                const displayPct = Math.min(100, Math.max(0, Math.round((rawVol || vol) * 100)));
+            // Wizard Live Voice Test Bar (only when wizard is open)
+            if (voiceTestFill && wizardModal && wizardModal.classList.contains('active')) {
+                const displayPct = Math.min(100, Math.max(0, Math.round(displayVol * 100)));
                 voiceTestFill.style.width = displayPct + '%';
 
-                if (displayPct >= Math.round(threshold * 100)) {
-                    voiceTestFeedback.innerText = `🎉 Voice Spike! (${displayPct}%)`;
-                    voiceTestFeedback.style.color = '#ff5c8a';
-                    voiceTestFill.style.background = 'linear-gradient(90deg, #ffbe0b, #ff006e)';
-                } else if (displayPct > 4) {
-                    voiceTestFeedback.innerText = `🎙️ Vocal Sound: ${displayPct}%`;
-                    voiceTestFeedback.style.color = '#4cc9f0';
-                    voiceTestFill.style.background = 'linear-gradient(90deg, #4cc9f0, #ff6b8b)';
+                if (voiceThresholdVal) voiceThresholdVal.innerText = `Trigger: ${thPct}%`;
+                if (voiceTestThreshold) voiceTestThreshold.style.left = thPct + '%';
+
+                if (displayPct >= thPct) {
+                    if (voiceTestFeedback) {
+                        voiceTestFeedback.innerText = `🎉 Voice Spike! (${displayPct}%)`;
+                        voiceTestFeedback.style.color = '#ff5c8a';
+                    }
+                    if (voiceTestFill) voiceTestFill.style.background = 'linear-gradient(90deg, #ffbe0b, #ff006e)';
+                } else if (displayPct > 3) {
+                    if (voiceTestFeedback) {
+                        voiceTestFeedback.innerText = `🎙️ Sound: ${displayPct}%`;
+                        voiceTestFeedback.style.color = '#4cc9f0';
+                    }
+                    if (voiceTestFill) voiceTestFill.style.background = 'linear-gradient(90deg, #4cc9f0, #ff6b8b)';
                 } else if (window.audioController.isListening) {
-                    voiceTestFeedback.innerText = '👂 Listening... Say "Hop!" or Hum';
-                    voiceTestFeedback.style.color = '#4CAF50';
+                    if (voiceTestFeedback) {
+                        voiceTestFeedback.innerText = '👂 Listening... Say "Hop!" or Hum';
+                        voiceTestFeedback.style.color = '#4CAF50';
+                    }
+                    if (voiceTestFill) voiceTestFill.style.background = 'linear-gradient(90deg, #4cc9f0, #ff6b8b)';
                 }
             }
         };
+
 
         window.audioController.onError = (err) => {
             meterLabel.innerText = 'Mic Off';

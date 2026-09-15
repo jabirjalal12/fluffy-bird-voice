@@ -1,5 +1,5 @@
 /**
- * GameEngine - Main Game Loop, Physics, Obstacles, Parallax Sky, Particles and State
+ * GameEngine - Main Game Loop, Physics, Obstacles, Parallax Sky, Particles and Constant Acceleration System
  */
 class GameEngine {
     constructor(canvasId) {
@@ -18,16 +18,26 @@ class GameEngine {
         this.score = 0;
         this.starsCollected = 0;
         this.highScore = parseInt(localStorage.getItem('fluffy_bird_highscore') || '0', 10);
+        this.totalStars = parseInt(localStorage.getItem('fluffy_bird_total_stars') || '0', 10);
+
+        // Constant Acceleration & Speed Physics
+        this.baseSpeed = 2.4;
+        this.gameSpeed = 2.4;
+        this.maxSpeed = 5.2;
+        this.accelerationRate = 0.040; // Speed increase per second
+        this.playTime = 0;
+        this.maxSpeedReached = 2.4;
+        this.speedTier = 1;
+        this.targetPipeDistance = 315; // Constant spacing in pixels regardless of speed
 
         // Obstacles & Spawning
         this.obstacles = [];
         this.stars = [];
         this.particles = [];
         this.floatingTexts = [];
+        this.windStreaks = [];
         this.pipeTimer = 0;
-        this.pipeInterval = 135; // Wider frames between successive pipes
-        this.gameSpeed = 2.4;
-        this.basePipeGap = 230; // Generous wide vertical gap
+        this.basePipeGap = 230; // Clean, wide, forgiving vertical gap
 
         // Visual Parallax Layers
         this.clouds = [];
@@ -35,7 +45,7 @@ class GameEngine {
         this.bgOffsetMid = 0;
         this.bgOffsetNear = 0;
 
-        // Screen shake
+        // Screen shake & manual fallback
         this.shakeTime = 0;
         this.shakeIntensity = 0;
         this.isManualFloating = false;
@@ -46,6 +56,7 @@ class GameEngine {
         this.lastTime = performance.now();
         this.initClouds();
         this.setupAudioListeners();
+        this.updateStatsUI();
     }
 
     initClouds() {
@@ -68,8 +79,6 @@ class GameEngine {
                     this.bird.flap(1.0);
                 } else if (this.state === 'MENU') {
                     this.startGame();
-                } else if (this.state === 'GAMEOVER') {
-                    // Optional voice restart if enough time passed
                 }
             };
         }
@@ -86,10 +95,14 @@ class GameEngine {
         this.stars = [];
         this.particles = [];
         this.floatingTexts = [];
+        this.windStreaks = [];
         this.score = 0;
         this.starsCollected = 0;
-        this.pipeTimer = 40; // Initial delay before first pipe
-        this.gameSpeed = 2.4;
+        this.playTime = 0;
+        this.speedTier = 1;
+        this.gameSpeed = this.baseSpeed;
+        this.maxSpeedReached = this.baseSpeed;
+        this.pipeTimer = 180; // Distance before first pipe arrives
         this.state = 'PLAYING';
 
         this.bird.flap(1.0);
@@ -106,6 +119,13 @@ class GameEngine {
         if (hud) hud.classList.toggle('active', this.state === 'PLAYING');
     }
 
+    updateStatsUI() {
+        const sideBest = document.getElementById('side-best-score');
+        const sideStars = document.getElementById('side-total-stars');
+        if (sideBest) sideBest.innerText = this.highScore.toString();
+        if (sideStars) sideStars.innerText = this.totalStars.toString();
+    }
+
     handleInputFlap() {
         if (this.state === 'MENU') {
             this.startGame();
@@ -116,12 +136,8 @@ class GameEngine {
         }
     }
 
-    setPipeGap(gap) {
-        this.basePipeGap = Math.max(160, Math.min(300, parseFloat(gap)));
-    }
-
     spawnObstacle() {
-        const gap = Math.max(190, this.basePipeGap - Math.min(25, this.score * 0.4));
+        const gap = Math.max(190, this.basePipeGap - Math.min(25, this.score * 0.3));
         const minTop = 50;
         const maxTop = this.height - this.groundHeight - gap - 50;
         const topHeight = minTop + Math.random() * (maxTop - minTop);
@@ -130,7 +146,7 @@ class GameEngine {
 
         const pipe = {
             x: this.width + 30,
-            width: 64, // Sleeker cloud pillar width
+            width: 64, // Sleek cloud pillar width
             topHeight: topHeight,
             bottomY: bottomY,
             bottomHeight: bottomHeight,
@@ -170,14 +186,23 @@ class GameEngine {
             }
         }
 
-        // Update UI
+        // Save total stars collected
+        this.totalStars += this.starsCollected;
+        localStorage.setItem('fluffy_bird_total_stars', this.totalStars.toString());
+        this.updateStatsUI();
+
+        // Update UI summary
         const scoreEl = document.getElementById('final-score');
         const bestEl = document.getElementById('final-best');
+        const speedEl = document.getElementById('final-speed');
+        const timeEl = document.getElementById('final-time');
         const newBestBadge = document.getElementById('new-best-badge');
         const medalBadge = document.getElementById('medal-icon');
 
         if (scoreEl) scoreEl.innerText = this.score.toString();
         if (bestEl) bestEl.innerText = this.highScore.toString();
+        if (speedEl) speedEl.innerText = `${(this.maxSpeedReached / this.baseSpeed).toFixed(1)}x`;
+        if (timeEl) timeEl.innerText = `${Math.round(this.playTime)}s`;
         if (newBestBadge) newBestBadge.style.display = isNewBest ? 'inline-block' : 'none';
 
         // Medals
@@ -265,14 +290,41 @@ class GameEngine {
         } else if (this.state === 'PLAYING') {
             this.bird.update(dt, 13.5);
 
-            // Progressive speed-up
-            this.gameSpeed = 2.4 + Math.min(1.6, this.score * 0.04);
+            // Constant Acceleration over Time & Score
+            this.playTime += dt;
+            this.gameSpeed = Math.min(this.maxSpeed, this.baseSpeed + (this.playTime * this.accelerationRate) + (this.score * 0.02));
+            if (this.gameSpeed > this.maxSpeedReached) {
+                this.maxSpeedReached = this.gameSpeed;
+            }
 
-            // Spawn obstacles
-            this.pipeTimer++;
-            if (this.pipeTimer >= this.pipeInterval) {
+            // Speed tier milestone notifications
+            if (this.gameSpeed >= 3.3 && this.speedTier === 1) {
+                this.speedTier = 2;
+                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: '⚡ SPEEDING UP!', color: '#4361ee', alpha: 1.0, vy: -1.0 });
+            } else if (this.gameSpeed >= 4.2 && this.speedTier === 2) {
+                this.speedTier = 3;
+                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: '🔥 TURBO FLIGHT!', color: '#ff5c8a', alpha: 1.0, vy: -1.0 });
+            } else if (this.gameSpeed >= 5.0 && this.speedTier === 3) {
+                this.speedTier = 4;
+                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: '⚡ MAX SPEED!', color: '#ffbe0b', alpha: 1.0, vy: -1.0 });
+            }
+
+            // Distance-based Obstacle Spawning (Consistent gap regardless of speed)
+            this.pipeTimer += this.gameSpeed;
+            if (this.pipeTimer >= this.targetPipeDistance) {
                 this.pipeTimer = 0;
                 this.spawnObstacle();
+            }
+
+            // High-speed wind streaks
+            if (this.gameSpeed > 3.2 && Math.random() < (this.gameSpeed - 3.0) * 0.22) {
+                this.windStreaks.push({
+                    x: this.width + 20,
+                    y: 30 + Math.random() * (this.height - this.groundHeight - 60),
+                    len: 25 + Math.random() * 45,
+                    speed: this.gameSpeed * 2.2,
+                    alpha: 0.35 + Math.random() * 0.35
+                });
             }
 
             // Update obstacles
@@ -351,17 +403,26 @@ class GameEngine {
             }
         }
 
-        // Parallax background updates
-        this.bgOffsetFar = (this.bgOffsetFar + 0.3) % this.width;
-        this.bgOffsetMid = (this.bgOffsetMid + 0.8) % this.width;
+        // Parallax background updates proportional to gameSpeed
+        this.bgOffsetFar = (this.bgOffsetFar + this.gameSpeed * 0.12) % this.width;
+        this.bgOffsetMid = (this.bgOffsetMid + this.gameSpeed * 0.35) % this.width;
         this.bgOffsetNear = (this.bgOffsetNear + this.gameSpeed) % this.width;
 
         // Clouds update
         for (const cloud of this.clouds) {
-            cloud.x -= cloud.speed;
+            cloud.x -= cloud.speed * (this.gameSpeed / this.baseSpeed);
             if (cloud.x < -cloud.radius * 3) {
                 cloud.x = this.width + cloud.radius * 2;
                 cloud.y = 30 + Math.random() * 260;
+            }
+        }
+
+        // Wind streaks update
+        for (let i = this.windStreaks.length - 1; i >= 0; i--) {
+            const ws = this.windStreaks[i];
+            ws.x -= ws.speed;
+            if (ws.x + ws.len < -20) {
+                this.windStreaks.splice(i, 1);
             }
         }
 
@@ -393,17 +454,27 @@ class GameEngine {
             this.shakeTime--;
         }
 
-        // Update In-Game HUD
+        // Update In-Game HUD Elements
         const scoreHud = document.getElementById('current-score-text');
+        const speedHud = document.getElementById('speed-text');
+        const speedBadge = document.getElementById('speed-badge');
+
         if (scoreHud) {
             scoreHud.innerText = this.score.toString();
+        }
+        if (speedHud) {
+            const mult = (this.gameSpeed / this.baseSpeed).toFixed(1);
+            speedHud.innerText = `${mult}x`;
+            if (speedBadge) {
+                speedBadge.classList.toggle('fast', this.gameSpeed >= 3.6);
+            }
         }
     }
 
     checkPipeCollision(bird, pipe) {
         const bx = bird.x;
         const by = bird.y;
-        const br = bird.radius * 0.70; // Forgiving inner body hitbox for smooth voice play
+        const br = bird.radius * 0.70; // Forgiving inner body hitbox
 
         // Top Pipe rect
         const inTopX = bx + br > pipe.x && bx - br < pipe.x + pipe.width;
@@ -453,22 +524,25 @@ class GameEngine {
         // 4. Distant Pastel Rolling Hills
         this.renderHills();
 
-        // 5. Pipes / Obstacles
+        // 5. Wind Streaks (High-speed FX)
+        this.renderWindStreaks();
+
+        // 6. Pipes / Obstacles
         this.renderObstacles();
 
-        // 6. Collectible Stars
+        // 7. Collectible Stars
         this.renderStars();
 
-        // 7. Ground / Meadow with Flowers
+        // 8. Ground / Meadow with Flowers
         this.renderGround();
 
-        // 8. Fluffy Bird
+        // 9. Fluffy Bird
         this.bird.render(this.ctx);
 
-        // 9. Particles (Feathers, Sparkles, Confetti)
+        // 10. Particles (Feathers, Sparkles, Confetti)
         this.renderParticles();
 
-        // 10. Floating Texts
+        // 11. Floating Texts
         this.renderFloatingTexts();
 
         this.ctx.restore();
@@ -517,30 +591,40 @@ class GameEngine {
         this.ctx.fill();
     }
 
+    renderWindStreaks() {
+        if (this.windStreaks.length === 0) return;
+        this.ctx.save();
+        this.ctx.lineWidth = 2;
+        this.ctx.lineCap = 'round';
+        for (const ws of this.windStreaks) {
+            this.ctx.strokeStyle = `rgba(255, 255, 255, ${ws.alpha})`;
+            this.ctx.beginPath();
+            this.ctx.moveTo(ws.x, ws.y);
+            this.ctx.lineTo(ws.x + ws.len, ws.y);
+            this.ctx.stroke();
+        }
+        this.ctx.restore();
+    }
+
     renderObstacles() {
         for (const pipe of this.obstacles) {
             const isCotton = pipe.colorScheme === 'cotton';
             const bodyColor = isCotton ? '#F7CAD0' : '#A8DADC';
-            const edgeColor = isCotton ? '#FF8FA3' : '#457B9D';
             const capColor = isCotton ? '#FF5C8A' : '#1D3557';
 
             this.ctx.save();
 
             // --- Top Pipe ---
-            // Main stem
             this.ctx.fillStyle = bodyColor;
             this.ctx.fillRect(pipe.x + 4, 0, pipe.width - 8, pipe.topHeight - 24);
 
-            // Highlight line
             this.ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
             this.ctx.fillRect(pipe.x + 10, 0, 8, pipe.topHeight - 24);
 
-            // Top Pipe Cap (Fluffy Cloud Pill / Mushroom Header)
             this.ctx.fillStyle = capColor;
             this.drawRoundedRect(this.ctx, pipe.x, pipe.topHeight - 28, pipe.width, 28, 10);
             this.ctx.fill();
 
-            // Decorative puff balls on cap
             this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
             this.ctx.beginPath();
             this.ctx.arc(pipe.x + pipe.width * 0.3, pipe.topHeight - 14, 5, 0, Math.PI * 2);
@@ -548,7 +632,6 @@ class GameEngine {
             this.ctx.fill();
 
             // --- Bottom Pipe ---
-            // Bottom Pipe Cap
             this.ctx.fillStyle = capColor;
             this.drawRoundedRect(this.ctx, pipe.x, pipe.bottomY, pipe.width, 28, 10);
             this.ctx.fill();
@@ -559,11 +642,9 @@ class GameEngine {
             this.ctx.arc(pipe.x + pipe.width * 0.7, pipe.bottomY + 14, 4, 0, Math.PI * 2);
             this.ctx.fill();
 
-            // Main stem
             this.ctx.fillStyle = bodyColor;
             this.ctx.fillRect(pipe.x + 4, pipe.bottomY + 28, pipe.width - 8, pipe.bottomHeight - 28);
 
-            // Highlight line
             this.ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
             this.ctx.fillRect(pipe.x + 10, pipe.bottomY + 28, 8, pipe.bottomHeight - 28);
 
@@ -577,7 +658,6 @@ class GameEngine {
             this.ctx.translate(star.x, star.y);
             this.ctx.rotate(star.rot);
 
-            // Glowing halo
             const glow = this.ctx.createRadialGradient(0, 0, 3, 0, 0, star.radius * 1.8);
             glow.addColorStop(0, 'rgba(255, 215, 0, 0.7)');
             glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
@@ -586,7 +666,6 @@ class GameEngine {
             this.ctx.arc(0, 0, star.radius * 1.8, 0, Math.PI * 2);
             this.ctx.fill();
 
-            // 5-point Gold Star
             this.ctx.fillStyle = '#FFD700';
             this.ctx.strokeStyle = '#FFA500';
             this.ctx.lineWidth = 1.5;
@@ -624,11 +703,9 @@ class GameEngine {
     renderGround() {
         const gh = this.height - this.groundHeight;
 
-        // Lush grass band
         this.ctx.fillStyle = '#80ED99';
         this.ctx.fillRect(0, gh, this.width, 16);
 
-        // Grass blades detail
         this.ctx.fillStyle = '#57CC99';
         for (let i = -20; i < this.width + 20; i += 18) {
             const gx = i - (this.bgOffsetNear % 18);
@@ -639,14 +716,12 @@ class GameEngine {
             this.ctx.fill();
         }
 
-        // Earth ground base
         const earthGrad = this.ctx.createLinearGradient(0, gh + 16, 0, this.height);
         earthGrad.addColorStop(0, '#E8B991');
         earthGrad.addColorStop(1, '#D08C5D');
         this.ctx.fillStyle = earthGrad;
         this.ctx.fillRect(0, gh + 16, this.width, this.groundHeight - 16);
 
-        // Cute animated flowers
         const flowerStep = 55;
         for (let i = -50; i < this.width + 50; i += flowerStep) {
             const fx = i - (this.bgOffsetNear % flowerStep);

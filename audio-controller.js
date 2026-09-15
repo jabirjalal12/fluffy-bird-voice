@@ -11,12 +11,12 @@ class AudioController {
         this.isListening = false;
         this.isCalibrating = false;
 
-        // Settings
+        // Settings (Constant balanced defaults for publishable release)
         this.mode = 'vocal_flap'; // 'vocal_flap' or 'continuous_float'
-        this.sensitivity = 1.0;   // Multiplier (0.5 to 2.5)
-        this.threshold = 0.22;    // Trigger threshold (0.05 to 0.8)
-        this.noiseFloor = 0.05;   // Background ambient noise floor
-        this.smoothing = 0.8;     // Smoothing factor for volume meter
+        this.sensitivity = 1.0;   // Balanced constant sensitivity
+        this.threshold = 0.20;    // Balanced voice trigger threshold
+        this.noiseFloor = 0.04;   // Background ambient noise floor
+        this.smoothing = 0.78;    // Smoothing factor for volume meter
 
         // Runtime state
         this.currentVolume = 0;

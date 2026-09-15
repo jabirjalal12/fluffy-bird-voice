@@ -79,6 +79,8 @@ class GameEngine {
                 if (this.state === 'PLAYING') {
                     this.bird.flap(1.0);
                     if (window.sfx) window.sfx.playFlap();
+                } else if (this.state === 'MENU' || this.state === 'GAMEOVER') {
+                    this.startGame();
                 }
             };
         }

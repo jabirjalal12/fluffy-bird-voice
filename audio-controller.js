@@ -1,12 +1,11 @@
 /**
- * AudioController - Autonomous Relative Sound Trigger & Adaptive Noise Engine
+ * AudioController - Autonomous Voice Trigger & Adaptive Noise Engine for Fluffy Bird
  * 
- * Core Concept:
- * - Sound Trigger: Player makes a sound/speaks -> Sound level detected -> Fluffy bird reacts.
- * - Relative Threshold: triggerThreshold = adaptiveNoiseFloor + dynamicSoundMargin
- * - Continuous Background Noise (Fans, AC, Laptop Cooler) -> Tracked into noise floor -> IGNORED.
- * - Short Intentional Sound Burst ("Hop!", "Jump!", "Ah!", voice) -> Rises above noise floor -> TRIGGER.
- * - Zero Player Configuration: No manual sensitivity sliders, volume knobs, or calibration buttons.
+ * Responsiveness & Behavior:
+ * - Direct Sound Input -> Fluffy bird flaps immediately upon speaking ("Hop!", "Jump!", "Ah!", voice, whistle, clap).
+ * - Automatic Ambient Noise Rejection: Continuously tracks steady room/fan background noise.
+ * - Dynamic Sensitivity: Calculates threshold = ambientNoiseFloor + margin so soft speech triggers easily in quiet rooms, while fan noise is ignored in noisy rooms.
+ * - Zero Configuration: No manual sensitivity or calibration settings required from the player.
  */
 class AudioController {
     constructor() {
@@ -26,25 +25,25 @@ class AudioController {
         this._loopRunning = false;
         this.mode = 'vocal_flap'; // 'vocal_flap' or 'continuous_float'
 
-        // Relative Sound Trigger & Adaptive Floor Properties
-        this.currentSoundLevel = 0;   // Current measured sound level (0.0 to 1.0)
-        this.smoothedLevel = 0;       // Smooth envelope for float physics
-        this.noiseFloor = 0.012;      // Dynamic background noise floor (auto-adapting)
-        this.triggerThreshold = 0.045;// Calculated relative trigger threshold
-        this.soundDelta = 0;          // Energy above noise floor (currentSoundLevel - noiseFloor)
-        this.isSoundTriggered = false;// Live trigger boolean
+        // Audio Measurement Properties (0.0 to 1.0)
+        this.currentSoundLevel = 0;   // Live measured composite volume
+        this.smoothedLevel = 0;       // Smooth envelope
+        this.noiseFloor = 0.020;      // Ambient background baseline
+        this.triggerThreshold = 0.080;// Relative trigger threshold
+        this.soundDelta = 0;          // Energy above noise floor
+        this.isSoundTriggered = false;// Live boolean (true when above threshold)
+        this.isAboveThreshold = false;// Debounce state for discrete flaps
 
-        // Burst Envelope & Cooldown
+        // Flap Timing & Cooldown
         this.lastFlapTime = 0;
-        this.flapCooldownMs = 150;    // 150ms clean cooldown between intentional flaps
-        this.hasTriggeredInBurst = false;
-        this.consecutiveAboveFrames = 0;
+        this.flapCooldownMs = 140;    // 140ms clean cooldown for rhythmic rapid hopping
+        this.totalTriggerEvents = 0;
 
-        // Diagnostics metrics (for Dev/Admin HUD)
+        // Diagnostics
         this.rawRms = 0;
         this.rawPeak = 0;
+        this.rawFreq = 0;
         this.snrDb = 0;
-        this.totalTriggerEvents = 0;
 
         // Callbacks
         this.onFlap = null;
@@ -71,39 +70,40 @@ class AudioController {
                 return true;
             }
 
-            // Universal clean microphone stream across all mobile & desktop browsers
+            // Universal high-compatibility microphone stream
             let stream = null;
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         echoCancellation: true,
                         noiseSuppression: true,
-                        autoGainControl: false // Disable AGC so ambient noise is not artificially boosted
+                        autoGainControl: true
                     }
                 });
             } catch (err) {
+                // Fallback to basic audio stream
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             }
 
             this.stream = stream;
             this.microphone = this.audioCtx.createMediaStreamSource(stream);
 
-            // 1. High-Pass Filter (140Hz cutoff) - Strips desk rumble, sub-bass air rush, motor vibrations
+            // 1. High-Pass Filter (120Hz cutoff): Cuts desk thuds & motor vibrations without muffling voice
             this.highpassFilter = this.audioCtx.createBiquadFilter();
             this.highpassFilter.type = 'highpass';
-            this.highpassFilter.frequency.value = 140;
+            this.highpassFilter.frequency.value = 120;
             this.highpassFilter.Q.value = 0.707;
 
-            // 2. Low-Pass Filter (4500Hz cutoff) - Removes high-frequency electronic hiss
+            // 2. Low-Pass Filter (4500Hz cutoff): Cuts ultra-high electrical static
             this.lowpassFilter = this.audioCtx.createBiquadFilter();
             this.lowpassFilter.type = 'lowpass';
             this.lowpassFilter.frequency.value = 4500;
             this.lowpassFilter.Q.value = 0.707;
 
-            // 3. Audio Spectrum Analyser (512 FFT bins, fast response)
+            // 3. Audio Spectrum Analyser (fast response, low smoothing)
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 512;
-            this.analyser.smoothingTimeConstant = 0.08;
+            this.analyser.smoothingTimeConstant = 0.05;
 
             // Connect DSP pipeline: Mic -> High-Pass -> Low-Pass -> Analyser
             this.microphone.connect(this.highpassFilter);
@@ -130,13 +130,12 @@ class AudioController {
 
     /**
      * Silent Background Calibration:
-     * Observes the room ambient sound level for ~600ms upon microphone startup.
-     * The player does NOT need to do anything or say anything.
+     * Samples room background noise for 500ms on startup.
      */
     silentBackgroundCalibration() {
         const samples = [];
         const start = performance.now();
-        const duration = 600; // 600ms ambient observation
+        const duration = 500;
 
         const collectInterval = setInterval(() => {
             if (!this.analyser || !this.floatArray) return;
@@ -147,14 +146,13 @@ class AudioController {
                 sumSquares += this.floatArray[i] * this.floatArray[i];
             }
             const rms = Math.sqrt(sumSquares / this.floatArray.length);
-            samples.push(rms);
+            samples.push(rms * 2.5);
 
             if (performance.now() - start >= duration) {
                 clearInterval(collectInterval);
                 if (samples.length > 0) {
                     const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
-                    const min = Math.min(...samples);
-                    this.noiseFloor = Math.max(0.004, Math.min(0.05, (avg * 0.7) + (min * 0.3)));
+                    this.noiseFloor = Math.max(0.010, Math.min(0.080, avg));
                 }
                 this.isCalibrated = true;
             }
@@ -199,7 +197,7 @@ class AudioController {
         if (!this.freqArray) this.freqArray = new Uint8Array(this.analyser.frequencyBinCount);
         if (!this.floatArray) this.floatArray = new Float32Array(this.analyser.fftSize);
 
-        // 1. Capture Time-Domain Waveform & Frequency Data
+        // 1. Time-Domain RMS & Peak Sample Extraction
         this.analyser.getFloatTimeDomainData(this.floatArray);
         this.analyser.getByteFrequencyData(this.freqArray);
 
@@ -218,73 +216,68 @@ class AudioController {
         this.rawRms = rms;
         this.rawPeak = maxPeak;
 
-        // Current composite sound level (weighted blend of RMS energy and peak deviation)
-        this.currentSoundLevel = (rms * 0.70) + (maxPeak * 0.30);
-        this.smoothedLevel = (this.smoothedLevel * 0.50) + (this.currentSoundLevel * 0.50);
+        // 2. Frequency-Domain Speech Energy (180Hz - 3800Hz)
+        let freqSum = 0;
+        const startBin = 2; // > 170Hz
+        const endBin = Math.min(48, this.freqArray.length); // < 4100Hz
+        for (let i = startBin; i < endBin; i++) {
+            freqSum += this.freqArray[i];
+        }
+        const freqAvg = (freqSum / ((endBin - startBin) * 255));
+        this.rawFreq = freqAvg;
 
-        // 2. Automatic Noise Floor Adaptation (Slow tracking of continuous background noise)
-        // - If sound is quiescent (below trigger threshold), adapt noise floor to match fan / AC / room hum.
-        // - FREEZE adaptation when sound rises above threshold, so player voice NEVER raises the noise floor!
-        const isSoundActive = this.currentSoundLevel > this.triggerThreshold;
+        // 3. Composite Sound Level (Sensitively scaled so normal speech reaches 0.25 - 0.85)
+        const compositeSignal = (rms * 2.8) + (maxPeak * 0.70) + (freqAvg * 1.30);
+        this.currentSoundLevel = Math.min(1.0, Math.max(0, compositeSignal));
+        this.smoothedLevel = (this.smoothedLevel * 0.60) + (this.currentSoundLevel * 0.40);
 
-        if (!isSoundActive) {
+        // 4. Adaptive Ambient Noise Floor Tracking
+        // - In quiescent moments (below threshold), adapt baseline to track room fans or ambient changes
+        // - Freeze adaptation when speech/sound is active so voice never raises the noise baseline
+        const isSoundAbove = this.currentSoundLevel > this.triggerThreshold;
+
+        if (!isSoundAbove) {
             if (this.currentSoundLevel < this.noiseFloor) {
-                // Room got quieter: adapt downwards quickly (~200ms)
-                this.noiseFloor = this.noiseFloor * 0.90 + this.currentSoundLevel * 0.10;
+                this.noiseFloor = this.noiseFloor * 0.94 + this.currentSoundLevel * 0.06;
             } else {
-                // Background noise slowly rose (e.g. fan switched on): adapt upwards slowly (~3.5s)
-                this.noiseFloor = this.noiseFloor * 0.996 + this.currentSoundLevel * 0.004;
+                this.noiseFloor = this.noiseFloor * 0.992 + this.currentSoundLevel * 0.008;
             }
-            this.noiseFloor = Math.max(0.003, Math.min(0.08, this.noiseFloor));
+            this.noiseFloor = Math.max(0.008, Math.min(0.120, this.noiseFloor));
         }
 
-        // 3. Dynamic Relative Trigger Threshold
-        // triggerThreshold = adaptiveNoiseFloor + dynamicSoundMargin
-        // Quiet Room (noiseFloor ~ 0.005) -> Margin is ~0.028 -> Soft speech triggers easily!
-        // Noisy Room (noiseFloor ~ 0.040) -> Margin expands -> Fan hum is ignored!
-        const dynamicMargin = Math.max(0.025, this.noiseFloor * 0.65 + 0.020);
+        // 5. Dynamic Trigger Threshold
+        // Trigger Margin dynamically scales: ~0.04 in quiet rooms, ~0.08 in noisy rooms
+        const dynamicMargin = Math.max(0.040, this.noiseFloor * 0.75 + 0.030);
         this.triggerThreshold = this.noiseFloor + dynamicMargin;
         this.soundDelta = Math.max(0, this.currentSoundLevel - this.noiseFloor);
 
         // Signal-to-Noise Ratio (dB)
         this.snrDb = 20 * Math.log10(Math.max(1e-4, this.currentSoundLevel) / Math.max(1e-4, this.noiseFloor));
 
-        // 4. Short Sound Burst & Energy Spike Detection
+        // 6. Flap Triggering Logic
         const now = performance.now();
-        const passesThreshold = this.currentSoundLevel >= this.triggerThreshold && this.soundDelta >= dynamicMargin;
-
-        if (passesThreshold) {
-            this.consecutiveAboveFrames++;
-        } else {
-            this.consecutiveAboveFrames = 0;
-        }
-
-        // Require at least 2 consecutive frames (~25ms) above threshold to eliminate single-sample electrical spikes
-        const isTriggerConditionMet = passesThreshold && this.consecutiveAboveFrames >= 2;
+        const passesThreshold = this.currentSoundLevel >= this.triggerThreshold;
         const previousTriggerState = this.isSoundTriggered;
-        this.isSoundTriggered = isTriggerConditionMet;
+        this.isSoundTriggered = passesThreshold;
 
-        // 5. Sound Trigger Execution (Vocal Flap vs Continuous Float)
         if (this.mode === 'vocal_flap') {
             const timeSinceLastFlap = now - this.lastFlapTime;
 
-            // Auto-reset burst lock when sound level drops back near baseline OR cooldown expires
-            if (timeSinceLastFlap > this.flapCooldownMs * 1.5 || this.currentSoundLevel < this.noiseFloor + (dynamicMargin * 0.6)) {
-                this.hasTriggeredInBurst = false;
-            }
-
-            if (isTriggerConditionMet && !this.hasTriggeredInBurst && timeSinceLastFlap > this.flapCooldownMs) {
+            // Trigger flap when volume crosses threshold upwards AND cooldown has passed
+            if (passesThreshold && !this.isAboveThreshold && timeSinceLastFlap > this.flapCooldownMs) {
                 this.lastFlapTime = now;
-                this.hasTriggeredInBurst = true;
+                this.isAboveThreshold = true;
                 this.totalTriggerEvents++;
 
                 if (this.onFlap) {
                     this.onFlap(this.getCurrentIntensity());
                 }
+            } else if (!passesThreshold) {
+                this.isAboveThreshold = false;
             }
         }
 
-        // Notify State Change for Player UI
+        // Notify State Change for UI
         if (this.isSoundTriggered !== previousTriggerState && this.onStateChange) {
             this.onStateChange(this.isSoundTriggered ? 'ACTIVE' : 'IDLE', this.currentSoundLevel, this.getCurrentIntensity());
         }
@@ -293,11 +286,10 @@ class AudioController {
     getCurrentIntensity() {
         if (!this.isListening) return 0;
         if (this.currentSoundLevel <= this.noiseFloor) return 0;
-        
-        // Intensity curve for continuous float (normalized above noise floor)
-        const dynamicMargin = Math.max(0.025, this.noiseFloor * 0.65 + 0.020);
-        const norm = Math.min(1.0, this.soundDelta / (dynamicMargin * 2.2));
-        return Math.max(0.20, Math.pow(norm, 0.70));
+
+        const dynamicMargin = Math.max(0.040, this.noiseFloor * 0.75 + 0.030);
+        const norm = Math.min(1.0, this.soundDelta / (dynamicMargin * 2.5));
+        return Math.max(0.20, Math.pow(norm, 0.75));
     }
 
     setMode(mode) {

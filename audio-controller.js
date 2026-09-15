@@ -1,7 +1,6 @@
-﻿/**
- * AudioController - High Precision Voice Intensity & Speech Trigger Handler
- * Built-in Fan & AC Noise Suppressor (220Hz High-Pass Filter + Spectral Gating)
- * Multi-harmonic analyzer tuned for clean, intentional speech commands.
+/**
+ * AudioController - High-Precision Live Microphone & Voice Intensity Engine
+ * Built-in Fan & Ambient Noise Filter with Real-Time Level Tracking
  */
 class AudioController {
     constructor() {
@@ -9,32 +8,34 @@ class AudioController {
         this.analyser = null;
         this.microphone = null;
         this.highpassFilter = null;
-        this.lowpassFilter = null;
         this.stream = null;
         this.timeArray = null;
         this.freqArray = null;
         this.floatArray = null;
+
         this.isListening = false;
         this.isCalibrating = false;
         this._loopRunning = false;
 
         // Fan & Ambient Noise Suppression Settings
         this.fanFilterActive = true;
-        this.highpassCutoff = 220; // 220Hz highpass cutoff strips 20Hz-200Hz fan rumble & wind buffeting
+        this.highpassCutoff = 160; // 160Hz highpass cutoff strips rumble & fan buffeting
 
         // Flight Mode & Sensitivity Settings
         this.mode = 'vocal_flap'; // 'vocal_flap' or 'continuous_float'
-        this.sensitivity = 0.90;
-        this.threshold = 0.15;    // Clean vocal trigger threshold (15%)
+        this.sensitivity = 1.0;
+        this.threshold = 0.14;    // 14% vocal trigger threshold
         this.ambientNoise = 0.02; // Adaptive background noise floor tracker
 
-        // Runtime state
+        // Runtime Volume Levels (0.0 to 1.0)
         this.currentVolume = 0;
         this.smoothedVolume = 0;
         this.rawRms = 0;
         this.rawPeak = 0;
+
+        // Flap Trigger Timing
         this.lastFlapTime = 0;
-        this.flapCooldownMs = 150; // Snappy 150ms cooldown for rapid flaps
+        this.flapCooldownMs = 140; // 140ms snappy cooldown for rapid rhythmic hops
         this.hasTriggeredInCurrentBurst = false;
 
         // Callbacks
@@ -61,13 +62,13 @@ class AudioController {
                 return true;
             }
 
-            // Universal clean microphone stream with active hardware noise suppression
+            // Universal clean microphone stream
             let stream = null;
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         echoCancellation: true,
-                        noiseSuppression: true,
+                        noiseSuppression: false,
                         autoGainControl: true
                     }
                 });
@@ -78,28 +79,20 @@ class AudioController {
             this.stream = stream;
             this.microphone = this.audioCtx.createMediaStreamSource(stream);
 
-            // 1. High-Pass Filter: Eliminates fan motor hum, AC vibration, and air buffeting (< 220Hz)
+            // 1. High-Pass Filter: Cuts sub-bass room rumble & fan buffeting
             this.highpassFilter = this.audioCtx.createBiquadFilter();
             this.highpassFilter.type = 'highpass';
             this.highpassFilter.frequency.value = this.fanFilterActive ? this.highpassCutoff : 40;
-            this.highpassFilter.Q.value = 0.707; // Standard Butterworth response
+            this.highpassFilter.Q.value = 0.707;
 
-            // 2. Low-Pass Filter: Cuts out ultra-high electronic hiss and static (> 3800Hz)
-            this.lowpassFilter = this.audioCtx.createBiquadFilter();
-            this.lowpassFilter.type = 'lowpass';
-            this.lowpassFilter.frequency.value = 3800;
-            this.lowpassFilter.Q.value = 0.707;
-
-            // 3. Audio Spectrum Analyser
+            // 2. Audio Spectrum Analyser
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 512;
-            this.analyser.smoothingTimeConstant = 0.15;
+            this.analyser.smoothingTimeConstant = 0.10;
 
-            // Connect Digital Signal Processing (DSP) Pipeline:
-            // Microphone -> High-Pass (Fan Killer) -> Low-Pass -> Analyser
+            // Connect Pipeline: Mic -> HighPass -> Analyser
             this.microphone.connect(this.highpassFilter);
-            this.highpassFilter.connect(this.lowpassFilter);
-            this.lowpassFilter.connect(this.analyser);
+            this.highpassFilter.connect(this.analyser);
 
             this.timeArray = new Uint8Array(this.analyser.fftSize);
             this.freqArray = new Uint8Array(this.analyser.frequencyBinCount);
@@ -141,7 +134,7 @@ class AudioController {
                 if (this.onLevelUpdate) {
                     const isTriggered = this.mode === 'vocal_flap' 
                         ? (this.smoothedVolume >= this.threshold || this.currentVolume >= this.threshold)
-                        : this.smoothedVolume > 0.04;
+                        : this.smoothedVolume > 0.05;
                     this.onLevelUpdate(this.smoothedVolume, this.threshold, isTriggered, this.currentVolume, this.rawRms);
                 }
             }
@@ -157,64 +150,56 @@ class AudioController {
         if (!this.freqArray) this.freqArray = new Uint8Array(this.analyser.frequencyBinCount);
         if (!this.floatArray) this.floatArray = new Float32Array(this.analyser.fftSize);
 
-        // 1. Time-Domain Peak Sample Deviation & RMS (Filtered of fan rumble)
-        this.analyser.getByteTimeDomainData(this.timeArray);
+        // 1. Time-Domain Peak Sample Deviation & RMS
         this.analyser.getFloatTimeDomainData(this.floatArray);
         this.analyser.getByteFrequencyData(this.freqArray);
 
         let maxDev = 0;
         let sumSquares = 0;
-        for (let i = 0; i < this.timeArray.length; i++) {
-            const dev = Math.abs(this.timeArray[i] - 128) / 128;
-            if (dev > maxDev) maxDev = dev;
-            sumSquares += dev * dev;
+        const len = this.floatArray.length;
+
+        for (let i = 0; i < len; i++) {
+            const val = this.floatArray[i];
+            const abs = Math.abs(val);
+            if (abs > maxDev) maxDev = abs;
+            sumSquares += val * val;
         }
-        const timeRms = Math.sqrt(sumSquares / this.timeArray.length);
+
+        const timeRms = Math.sqrt(sumSquares / len);
         this.rawRms = timeRms;
         this.rawPeak = maxDev;
 
-        // 2. Frequency-Domain Vocal Energy:
-        // Skip Bins 0, 1, 2 (0 - 280Hz) to discard fan turbulence & motor resonances
+        // 2. Frequency-Domain Vocal Energy (180Hz - 3800Hz)
         let freqSum = 0;
         const startBin = this.fanFilterActive ? 3 : 1;
-        const endBin = Math.min(45, this.freqArray.length); // 280Hz - 4200Hz (Human speech range)
+        const endBin = Math.min(48, this.freqArray.length);
         for (let i = startBin; i < endBin; i++) {
             freqSum += this.freqArray[i];
         }
-        const voiceFreqAvg = (freqSum / ((endBin - startBin) * 255));
+        const freqAvg = (freqSum / ((endBin - startBin) * 255));
 
-        // 3. Combined Clean Vocal Score with Adaptive Ambient Floor Subtraction
-        const peakScore = Math.max(0, maxDev - this.ambientNoise * 1.0);
-        const rmsScore = Math.max(0, timeRms - this.ambientNoise * 0.8);
-        const freqScore = Math.max(0, voiceFreqAvg - this.ambientNoise * 0.5);
-
-        const vocalSignal = (peakScore * 0.60) + (rmsScore * 1.40) + (freqScore * 1.20);
-        let rawVol = Math.min(1.0, Math.max(0, vocalSignal * this.sensitivity));
-
-        // Noise gate: Sub-threshold stationary background flutter is zeroed out
-        if (this.fanFilterActive && rawVol < 0.035) {
-            rawVol = 0;
-        }
-
-        // Dynamic Baseline Floor Tracking (Adapts to continuous background changes)
-        if (rawVol < this.ambientNoise * 1.4 || this.ambientNoise === 0) {
-            this.ambientNoise = this.ambientNoise * 0.985 + (rawVol > 0 ? rawVol * 0.015 : 0);
-        }
-
-        // Smoothing for UI & Flight Physics
-        const currentSmoothing = this.mode === 'continuous_float' ? 0.30 : 0.40;
-        this.smoothedVolume = (this.smoothedVolume * currentSmoothing) + (rawVol * (1 - currentSmoothing));
+        // 3. Clean Composite Live Volume Score (Scaled 0.0 to 1.0)
+        const compositeSignal = ((timeRms * 3.6) + (maxDev * 0.75) + (freqAvg * 1.35)) * this.sensitivity;
+        const rawVol = Math.min(1.0, Math.max(0, compositeSignal));
         this.currentVolume = rawVol;
 
-        const now = performance.now();
+        // Smooth volume for UI bar & float physics
+        const smoothing = this.mode === 'continuous_float' ? 0.35 : 0.45;
+        this.smoothedVolume = (this.smoothedVolume * smoothing) + (rawVol * (1 - smoothing));
 
-        // 4. Speech Spike Trigger (Vocal Flap Mode)
+        // 4. Background noise floor tracking
+        if (rawVol < this.threshold * 0.85) {
+            this.ambientNoise = this.ambientNoise * 0.98 + rawVol * 0.02;
+        }
+
+        // 5. Speech Spike Trigger (Vocal Flap Mode)
+        const now = performance.now();
         if (this.mode === 'vocal_flap') {
             const effectiveVol = Math.max(this.smoothedVolume, rawVol);
             const timeSinceLastFlap = now - this.lastFlapTime;
 
-            // Auto-unlock burst lock after cooldown expires or volume drops below threshold * 0.80
-            if (timeSinceLastFlap > this.flapCooldownMs * 1.4 || effectiveVol < this.threshold * 0.80) {
+            // Reset burst lock when volume drops below threshold * 0.75 or cooldown expires
+            if (timeSinceLastFlap > this.flapCooldownMs * 1.5 || effectiveVol < this.threshold * 0.75) {
                 this.hasTriggeredInCurrentBurst = false;
             }
 
@@ -234,9 +219,7 @@ class AudioController {
         if (!this.isListening) return 0;
         if (this.smoothedVolume < 0.03) return 0;
         
-        // Responsive lift curve for continuous humming/singing
-        const targetRef = Math.max(0.08, this.threshold);
-        const norm = Math.min(1.0, this.smoothedVolume / (targetRef * 1.1));
+        const norm = Math.min(1.0, this.smoothedVolume / Math.max(0.10, this.threshold * 1.1));
         return Math.pow(norm, 0.70);
     }
 
@@ -252,16 +235,15 @@ class AudioController {
 
         return new Promise((resolve) => {
             const sampleInterval = setInterval(() => {
-                if (!this.analyser || !this.timeArray) return;
-                this.analyser.getByteTimeDomainData(this.timeArray);
+                if (!this.analyser || !this.floatArray) return;
+                this.analyser.getFloatTimeDomainData(this.floatArray);
 
                 let sumSquares = 0;
-                for (let i = 0; i < this.timeArray.length; i++) {
-                    const dev = Math.abs(this.timeArray[i] - 128) / 128;
-                    sumSquares += dev * dev;
+                for (let i = 0; i < this.floatArray.length; i++) {
+                    sumSquares += this.floatArray[i] * this.floatArray[i];
                 }
-                const rms = Math.sqrt(sumSquares / this.timeArray.length);
-                samples.push(rms);
+                const rms = Math.sqrt(sumSquares / this.floatArray.length);
+                samples.push(rms * 3.5);
 
                 const elapsed = performance.now() - startTime;
                 const progress = Math.min(1.0, elapsed / durationMs);
@@ -272,11 +254,10 @@ class AudioController {
                     this.isCalibrating = false;
 
                     const avg = samples.reduce((a, b) => a + b, 0) / (samples.length || 1);
-                    const max = Math.max(...samples, 0.005);
+                    const max = Math.max(...samples, 0.01);
 
-                    // Float threshold safely above measured fan/room noise
-                    this.ambientNoise = Math.min(0.06, Math.max(0.005, avg));
-                    this.threshold = Math.min(0.30, Math.max(0.12, max * 2.2 + 0.04));
+                    this.ambientNoise = Math.min(0.08, Math.max(0.01, avg));
+                    this.threshold = Math.min(0.35, Math.max(0.08, max * 1.8 + 0.04));
 
                     resolve({
                         avgAmbient: avg,
@@ -291,26 +272,25 @@ class AudioController {
 
     setSensitivityPreset(preset) {
         if (preset === 'quiet') {
-            this.sensitivity = 1.10;
+            this.sensitivity = 1.20;
             this.threshold = 0.10; // 10%
-            this.highpassCutoff = 200;
+            this.highpassCutoff = 140;
             this.setFanFilter(true);
         } else if (preset === 'fan_mode') {
-            // Dedicated High Fan / AC Suppression mode
-            this.sensitivity = 0.85;
-            this.threshold = 0.18; // 18%
-            this.highpassCutoff = 280; // 280Hz cutoff strips heavier fan blast
+            this.sensitivity = 0.90;
+            this.threshold = 0.16; // 16%
+            this.highpassCutoff = 240;
             this.setFanFilter(true);
         } else if (preset === 'noisy') {
-            this.sensitivity = 0.70;
+            this.sensitivity = 0.75;
             this.threshold = 0.22; // 22%
-            this.highpassCutoff = 260;
+            this.highpassCutoff = 220;
             this.setFanFilter(true);
         } else {
-            // 'normal' (balanced, fan filter enabled)
-            this.sensitivity = 0.90;
-            this.threshold = 0.15; // 15%
-            this.highpassCutoff = 220;
+            // 'normal'
+            this.sensitivity = 1.0;
+            this.threshold = 0.14; // 14%
+            this.highpassCutoff = 160;
             this.setFanFilter(true);
         }
     }

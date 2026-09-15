@@ -304,13 +304,13 @@ class GameEngine {
             // Speed tier milestone notifications
             if (this.gameSpeed >= 3.3 && this.speedTier === 1) {
                 this.speedTier = 2;
-                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: '⚡ SPEEDING UP!', color: '#4361ee', alpha: 1.0, vy: -1.0 });
+                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: 'ΓÜí SPEEDING UP!', color: '#4361ee', alpha: 1.0, vy: -1.0 });
             } else if (this.gameSpeed >= 4.2 && this.speedTier === 2) {
                 this.speedTier = 3;
-                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: '🔥 TURBO FLIGHT!', color: '#ff5c8a', alpha: 1.0, vy: -1.0 });
+                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: '≡ƒöÑ TURBO FLIGHT!', color: '#ff5c8a', alpha: 1.0, vy: -1.0 });
             } else if (this.gameSpeed >= 5.0 && this.speedTier === 3) {
                 this.speedTier = 4;
-                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: '⚡ MAX SPEED!', color: '#ffbe0b', alpha: 1.0, vy: -1.0 });
+                this.floatingTexts.push({ x: this.width / 2, y: this.height * 0.35, text: 'ΓÜí MAX SPEED!', color: '#ffbe0b', alpha: 1.0, vy: -1.0 });
             }
 
             // Distance-based Obstacle Spawning (Consistent gap regardless of speed)

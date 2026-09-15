@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SFX Synthesizer using Web Audio API
  * Generates custom procedural sound effects without external audio files.
  */

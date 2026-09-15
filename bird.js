@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Bird Class - Fluffy Animated Bird with procedural rendering, physics, and skins
  */
 class FluffyBird {

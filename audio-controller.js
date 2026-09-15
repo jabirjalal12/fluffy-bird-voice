@@ -1,12 +1,15 @@
 /**
  * AudioController - High Precision Voice Intensity & Speech Trigger Handler
- * Multi-harmonic analyzer tuned for clean, intentional speech commands with filtered ambient noise.
+ * Built-in Fan & AC Noise Suppressor (220Hz High-Pass Filter + Spectral Gating)
+ * Multi-harmonic analyzer tuned for clean, intentional speech commands.
  */
 class AudioController {
     constructor() {
         this.audioCtx = null;
         this.analyser = null;
         this.microphone = null;
+        this.highpassFilter = null;
+        this.lowpassFilter = null;
         this.stream = null;
         this.timeArray = null;
         this.freqArray = null;
@@ -15,7 +18,11 @@ class AudioController {
         this.isCalibrating = false;
         this._loopRunning = false;
 
-        // Settings (Less sensitive, requiring intentional spoken sound like "Hop!" or "Jump!")
+        // Fan & Ambient Noise Suppression Settings
+        this.fanFilterActive = true;
+        this.highpassCutoff = 220; // 220Hz highpass cutoff strips 20Hz-200Hz fan rumble & wind buffeting
+
+        // Flight Mode & Sensitivity Settings
         this.mode = 'vocal_flap'; // 'vocal_flap' or 'continuous_float'
         this.sensitivity = 0.90;
         this.threshold = 0.15;    // Clean vocal trigger threshold (15%)
@@ -54,13 +61,13 @@ class AudioController {
                 return true;
             }
 
-            // Universal clean microphone stream
+            // Universal clean microphone stream with active hardware noise suppression
             let stream = null;
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
+                        echoCancellation: true,
+                        noiseSuppression: true,
                         autoGainControl: true
                     }
                 });
@@ -70,11 +77,30 @@ class AudioController {
 
             this.stream = stream;
             this.microphone = this.audioCtx.createMediaStreamSource(stream);
+
+            // 1. High-Pass Filter: Eliminates fan motor hum, AC vibration, and air buffeting (< 220Hz)
+            this.highpassFilter = this.audioCtx.createBiquadFilter();
+            this.highpassFilter.type = 'highpass';
+            this.highpassFilter.frequency.value = this.fanFilterActive ? this.highpassCutoff : 40;
+            this.highpassFilter.Q.value = 0.707; // Standard Butterworth response
+
+            // 2. Low-Pass Filter: Cuts out ultra-high electronic hiss and static (> 3800Hz)
+            this.lowpassFilter = this.audioCtx.createBiquadFilter();
+            this.lowpassFilter.type = 'lowpass';
+            this.lowpassFilter.frequency.value = 3800;
+            this.lowpassFilter.Q.value = 0.707;
+
+            // 3. Audio Spectrum Analyser
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 512;
             this.analyser.smoothingTimeConstant = 0.15;
 
-            this.microphone.connect(this.analyser);
+            // Connect Digital Signal Processing (DSP) Pipeline:
+            // Microphone -> High-Pass (Fan Killer) -> Low-Pass -> Analyser
+            this.microphone.connect(this.highpassFilter);
+            this.highpassFilter.connect(this.lowpassFilter);
+            this.lowpassFilter.connect(this.analyser);
+
             this.timeArray = new Uint8Array(this.analyser.fftSize);
             this.freqArray = new Uint8Array(this.analyser.frequencyBinCount);
             this.floatArray = new Float32Array(this.analyser.fftSize);
@@ -89,6 +115,14 @@ class AudioController {
                 this.onError(err);
             }
             return false;
+        }
+    }
+
+    setFanFilter(enabled) {
+        this.fanFilterActive = !!enabled;
+        if (this.highpassFilter && this.audioCtx) {
+            const targetFreq = this.fanFilterActive ? this.highpassCutoff : 40;
+            this.highpassFilter.frequency.setTargetAtTime(targetFreq, this.audioCtx.currentTime, 0.05);
         }
     }
 
@@ -123,7 +157,7 @@ class AudioController {
         if (!this.freqArray) this.freqArray = new Uint8Array(this.analyser.frequencyBinCount);
         if (!this.floatArray) this.floatArray = new Float32Array(this.analyser.fftSize);
 
-        // 1. Time-Domain Peak Sample Deviation & RMS
+        // 1. Time-Domain Peak Sample Deviation & RMS (Filtered of fan rumble)
         this.analyser.getByteTimeDomainData(this.timeArray);
         this.analyser.getFloatTimeDomainData(this.floatArray);
         this.analyser.getByteFrequencyData(this.freqArray);
@@ -139,26 +173,32 @@ class AudioController {
         this.rawRms = timeRms;
         this.rawPeak = maxDev;
 
-        // 2. Frequency-Domain Vocal Energy (100Hz - 4000Hz)
+        // 2. Frequency-Domain Vocal Energy:
+        // Skip Bins 0, 1, 2 (0 - 280Hz) to discard fan turbulence & motor resonances
         let freqSum = 0;
-        const startBin = 1;
-        const endBin = Math.min(64, this.freqArray.length);
+        const startBin = this.fanFilterActive ? 3 : 1;
+        const endBin = Math.min(45, this.freqArray.length); // 280Hz - 4200Hz (Human speech range)
         for (let i = startBin; i < endBin; i++) {
             freqSum += this.freqArray[i];
         }
         const voiceFreqAvg = (freqSum / ((endBin - startBin) * 255));
 
-        // 3. Combined Clean Vocal Score with Ambient Floor Rejection
-        const peakScore = Math.max(0, maxDev - this.ambientNoise * 0.9);
-        const rmsScore = Math.max(0, timeRms - this.ambientNoise * 0.6);
-        const freqScore = Math.max(0, voiceFreqAvg - this.ambientNoise * 0.4);
+        // 3. Combined Clean Vocal Score with Adaptive Ambient Floor Subtraction
+        const peakScore = Math.max(0, maxDev - this.ambientNoise * 1.0);
+        const rmsScore = Math.max(0, timeRms - this.ambientNoise * 0.8);
+        const freqScore = Math.max(0, voiceFreqAvg - this.ambientNoise * 0.5);
 
-        const vocalSignal = (peakScore * 0.60) + (rmsScore * 1.40) + (freqScore * 1.10);
+        const vocalSignal = (peakScore * 0.60) + (rmsScore * 1.40) + (freqScore * 1.20);
         let rawVol = Math.min(1.0, Math.max(0, vocalSignal * this.sensitivity));
 
-        // Dynamic Baseline Tracking (Very slow filter so speech doesn't pull up noise floor)
-        if (rawVol < this.ambientNoise * 1.3 || this.ambientNoise === 0) {
-            this.ambientNoise = this.ambientNoise * 0.98 + rawVol * 0.02;
+        // Noise gate: Sub-threshold stationary background flutter is zeroed out
+        if (this.fanFilterActive && rawVol < 0.035) {
+            rawVol = 0;
+        }
+
+        // Dynamic Baseline Floor Tracking (Adapts to continuous background changes)
+        if (rawVol < this.ambientNoise * 1.4 || this.ambientNoise === 0) {
+            this.ambientNoise = this.ambientNoise * 0.985 + (rawVol > 0 ? rawVol * 0.015 : 0);
         }
 
         // Smoothing for UI & Flight Physics
@@ -234,8 +274,9 @@ class AudioController {
                     const avg = samples.reduce((a, b) => a + b, 0) / (samples.length || 1);
                     const max = Math.max(...samples, 0.005);
 
-                    this.ambientNoise = Math.min(0.04, Math.max(0.005, avg));
-                    this.threshold = Math.min(0.28, Math.max(0.10, max * 2.0 + 0.04));
+                    // Float threshold safely above measured fan/room noise
+                    this.ambientNoise = Math.min(0.06, Math.max(0.005, avg));
+                    this.threshold = Math.min(0.30, Math.max(0.12, max * 2.2 + 0.04));
 
                     resolve({
                         avgAmbient: avg,
@@ -252,13 +293,25 @@ class AudioController {
         if (preset === 'quiet') {
             this.sensitivity = 1.10;
             this.threshold = 0.10; // 10%
+            this.highpassCutoff = 200;
+            this.setFanFilter(true);
+        } else if (preset === 'fan_mode') {
+            // Dedicated High Fan / AC Suppression mode
+            this.sensitivity = 0.85;
+            this.threshold = 0.18; // 18%
+            this.highpassCutoff = 280; // 280Hz cutoff strips heavier fan blast
+            this.setFanFilter(true);
         } else if (preset === 'noisy') {
             this.sensitivity = 0.70;
             this.threshold = 0.22; // 22%
+            this.highpassCutoff = 260;
+            this.setFanFilter(true);
         } else {
-            // 'normal' (balanced, less sensitive, requires clear spoken sound)
+            // 'normal' (balanced, fan filter enabled)
             this.sensitivity = 0.90;
             this.threshold = 0.15; // 15%
+            this.highpassCutoff = 220;
+            this.setFanFilter(true);
         }
     }
 

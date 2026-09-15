@@ -297,10 +297,25 @@
                 <div class="sensitivity-presets-group">
                     <span class="preset-title">Room Acoustics Preset:</span>
                     <div class="preset-chips-row">
-                        <button class="preset-chip" data-preset="quiet">🤫 Quiet Room</button>
-                        <button class="preset-chip active" data-preset="normal">🎙️ Normal (Balanced)</button>
-                        <button class="preset-chip" data-preset="noisy">📢 Noisy Room</button>
+                        <button class="preset-chip" data-preset="quiet">🤫 Quiet</button>
+                        <button class="preset-chip active" data-preset="normal">🎙️ Normal</button>
+                        <button class="preset-chip" data-preset="fan_mode">🌪️ Fan / AC</button>
+                        <button class="preset-chip" data-preset="noisy">📢 Noisy</button>
                     </div>
+                </div>
+
+                <!-- Fan & AC Noise Suppressor Card -->
+                <div class="fan-suppressor-card active" id="fan-suppressor-card">
+                    <div class="fan-suppressor-info">
+                        <span class="fan-icon-spin" id="fan-icon-spin">🌪️</span>
+                        <div class="fan-text-group">
+                            <div class="fan-suppressor-title">Fan & AC Noise Suppressor</div>
+                            <div class="fan-suppressor-status" id="fan-filter-status">Active (220Hz High-Pass + Spectral Gate)</div>
+                        </div>
+                    </div>
+                    <button class="btn-fan-toggle" id="btn-fan-toggle" title="Toggle Fan Noise Suppression">
+                        <span id="fan-toggle-label">ON</span>
+                    </button>
                 </div>
 
                 <button class="btn-secondary btn-calibrate-shimmer" id="btn-wizard-calibrate" style="width: 100%; margin: 4px 0 12px 0;">
@@ -501,6 +516,13 @@
         const presetChips = document.querySelectorAll('.preset-chip');
         const btnWizardCalibrate = document.getElementById('btn-wizard-calibrate');
 
+        // Fan Suppressor UI References
+        const fanSuppressorCard = document.getElementById('fan-suppressor-card');
+        const btnFanToggle = document.getElementById('btn-fan-toggle');
+        const fanToggleLabel = document.getElementById('fan-toggle-label');
+        const fanFilterStatus = document.getElementById('fan-filter-status');
+        const fanIconSpin = document.getElementById('fan-icon-spin');
+
         // Mini Flight & Oscilloscope Canvas
         const voiceWaveCanvas = document.getElementById('voice-wave-canvas');
         const waveCtx = voiceWaveCanvas ? voiceWaveCanvas.getContext('2d') : null;
@@ -693,6 +715,34 @@
             if (voiceThresholdVal) voiceThresholdVal.innerText = `Trigger: ${pct}%`;
         }
 
+        function updateFanSuppressorUI() {
+            const isActive = window.audioController.fanFilterActive;
+            if (fanSuppressorCard) fanSuppressorCard.classList.toggle('active', isActive);
+            if (btnFanToggle) {
+                btnFanToggle.classList.toggle('off', !isActive);
+                if (fanToggleLabel) fanToggleLabel.innerText = isActive ? 'ON' : 'OFF';
+            }
+            if (fanFilterStatus) {
+                fanFilterStatus.innerText = isActive 
+                    ? `Active (${window.audioController.highpassCutoff}Hz High-Pass + Spectral Gate)` 
+                    : 'Disabled (Raw Mic Input)';
+            }
+            if (fanIconSpin) {
+                fanIconSpin.style.animationPlayState = isActive ? 'running' : 'paused';
+            }
+        }
+
+        if (btnFanToggle) {
+            btnFanToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const newState = !window.audioController.fanFilterActive;
+                window.audioController.setFanFilter(newState);
+                updateFanSuppressorUI();
+                if (window.sfx) window.sfx.playClick();
+            });
+            btnFanToggle.addEventListener('pointerdown', (e) => e.stopPropagation());
+        }
+
         presetChips.forEach(chip => {
             chip.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -701,6 +751,7 @@
                 const preset = chip.getAttribute('data-preset');
                 window.audioController.setSensitivityPreset(preset);
                 syncThresholdUI();
+                updateFanSuppressorUI();
                 if (window.sfx) window.sfx.playClick();
             });
             chip.addEventListener('pointerdown', (e) => e.stopPropagation());

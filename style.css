@@ -1099,6 +1099,79 @@ body {
     box-shadow: 0 4px 10px rgba(255, 92, 138, 0.3);
 }
 
+/* Fan & AC Noise Suppressor Card */
+.fan-suppressor-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f0f7ff;
+    border: 1.5px solid #bde0fe;
+    border-radius: 14px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    transition: all 0.2s ease;
+}
+
+.fan-suppressor-card.active {
+    background: #eef8ff;
+    border-color: #4cc9f0;
+    box-shadow: 0 3px 12px rgba(76, 201, 240, 0.15);
+}
+
+.fan-suppressor-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fan-icon-spin {
+    font-size: 18px;
+    display: inline-block;
+    animation: fanSpin 4s linear infinite;
+}
+
+@keyframes fanSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fan-text-group {
+    text-align: left;
+}
+
+.fan-suppressor-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0077b6;
+}
+
+.fan-suppressor-status {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #555;
+}
+
+.btn-fan-toggle {
+    background: #4cc9f0;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.btn-fan-toggle:hover {
+    transform: scale(1.05);
+}
+
+.btn-fan-toggle.off {
+    background: #ced4da;
+    color: #666;
+}
+
 .btn-calibrate-shimmer {
     background: #ffffff;
     border-color: #4cc9f0;
